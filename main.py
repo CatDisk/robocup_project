@@ -20,8 +20,13 @@ def main():
     running = True
 
     #init Field
+    entities = []
     field = Field(display)
     field.update()
+    for n in range(10):
+        entities.append(Player((200, 200), n*36, pygame.image.load("./assets/player_blue.png"), display))
+    for elem in entities:
+        elem.set_speed(0.8)
 
     pygame.display.flip()
 
@@ -29,7 +34,12 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+        field.update()
+        for entity in entities:
+            entity.update()
 
+        pygame.display.flip()
+        FramePerSec.tick(FPS)
 
 if __name__ == "__main__":
     main()
