@@ -23,10 +23,10 @@ def main():
     entities = []
     field = Field(display)
     field.update()
-    for n in range(10):
-        entities.append(Player((200, 200), n*36, pygame.image.load("./assets/player_blue.png"), display))
+    for _ in range(1):
+        entities.append(Player((200, 200), 0, 0.8, pygame.image.load("./assets/player_blue.png"), display))
     for elem in entities:
-        elem.set_speed(0.8)
+        elem.go_to((300, 300))
 
     pygame.display.flip()
 
