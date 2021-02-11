@@ -26,7 +26,7 @@ class Player():
             self.current_speed[1] = 0
         else:
             self.position = self.position + self.current_speed
-        self.display.blit(pygame.transform.rotate(self.sprite, -self.dir), vec2tuple(self.position))
+        self.display.blit(pygame.transform.rotate(self.sprite, self.dir - 90), vec2tuple(self.position))
 
     def go_to(self, pos):
         width, height = self.display.get_size()
