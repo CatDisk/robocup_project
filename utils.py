@@ -8,3 +8,10 @@ def deg2rad(deg):
 
 def rad2deg(rad):
     return rad * (180/np.pi)
+
+def normalize(vec):
+    norm = np.linalg.norm(vec)
+    if norm == 0:
+        return vec
+    else:
+        return vec / norm
