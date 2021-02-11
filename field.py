@@ -9,8 +9,10 @@ class Field():
             "border": pygame.image.load("./assets/border.png"),
             "center": pygame.image.load("./assets/center.png")
         }
-
-    def update(self):
+        self.field_tiles = []
+        self.__build_field__()
+    
+    def __build_field__ (self):
         tile = self.sprite_dict["corner"]
         for i in range(0, self.width, 64):
             for j in range(0, self.height, 64):
@@ -40,5 +42,13 @@ class Field():
 
                 else:
                     tile = self.sprite_dict["center"]
-                
-                self.display.blit(pygame.transform.rotate(tile, angle), (i, j))
+
+                self.field_tiles.append({
+                    "tile": tile,
+                    "coord": (i, j),
+                    "angle": angle,
+                })
+
+    def update(self):
+        for piece in self.field_tiles:
+            self.display.blit(pygame.transform.rotate(piece["tile"], piece["angle"]), piece["coord"])
