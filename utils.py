@@ -5,3 +5,6 @@ def vec2tuple(vec: np.ndarray):
 
 def deg2rad(deg):
     return deg * (np.pi/180)
+
+def rad2deg(rad):
+    return rad * (180/np.pi)
