@@ -1,6 +1,8 @@
 class Message():
-    def __init__(self, func, args):
-        self.func = func
-        self.args = []
-        for arg in args:
-            self.args.append(arg)
+    def __init__(self, msg_type, payload):
+        self.msg_type = msg_type
+        #msg_type is "data", "order" or "quit" 
+        self.payload = payload
+    
+    def __repr__(self) -> str:
+        return "Message(\"{}\", \"{}\")".format(self.msg_type, self.payload)
