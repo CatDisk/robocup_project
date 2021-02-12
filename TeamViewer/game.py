@@ -1,14 +1,17 @@
 import pygame
 from pygame import display
 from pygame.locals import *
+import json
+import threading
 
 from field import Field
 from player import Player
 from message import Message
+from game_controller import GameController
 
 HEIGHT = 64 * 7
 WIDTH = 64 * 12
-FPS = 120
+FPS = 60
 
 class Game():
     def __init__(self) -> None:
@@ -28,24 +31,31 @@ class Game():
         self.inbox = []
         self.outbox = []
 
-    def add_player(self, pos, dir, team = "red"):
-        self.players.append(Player(pos, dir, self.player_speed, self.player_spites[team], self.display))
+    def add_player(self,pos, dir, team = "red"):
+        #player id corresponds to index in players list
+        id = len(self.players)
+        self.players.append(Player(id, pos, dir, self.player_speed, self.player_spites[team], self.display))
 
     def msg_handler(self, mode='in', body = None):
         if mode == 'in':
             while len(self.inbox) > 0:
-                order = self.inbox.pop()
-                if order.func == "move player":
-                    self.players[0].go_to(order.args[0])
-                if order.func == "quit":
+                msg = self.inbox.pop()
+                if msg.msg_type == "order":
+                    payload = json.loads(msg.payload)
+                    if payload["action"] == "move":
+                        self.players[payload["target"]].go_to(payload["params"])
+                elif msg.msg_type == "quit":
                     self.running = False
 
     def start(self):
         pygame.display.flip()
-
+        #main game loop
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    if controller != None:
+                        controller.running = False
+                        controller_thread.join()
                     self.running = False
             self.msg_handler()
             self.field.update()
@@ -57,8 +67,9 @@ class Game():
 
 if __name__ == "__main__":
     game = Game()
+    controller = GameController(game.inbox)
     game.add_player((100, 100), 0)
     game.add_player((100, 300), 180, "blue")
-    game.players[0].go_to((500, 200))
-    game.players[1].go_to((500, 200))
+    controller_thread = threading.Thread(target = controller.run)
+    controller_thread.start()
     game.start()
