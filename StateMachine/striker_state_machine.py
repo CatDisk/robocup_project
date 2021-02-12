@@ -1,6 +1,20 @@
 from State import State
 from StateMachine import StateMachine
-from StrikerAction import StrikerAction
+from Action import Action
+
+
+class StrikerAction(Action):
+
+    name = "StrikerAction"
+
+
+# Definition of all Striker Actions
+StrikerAction.ReadyToShoot = Action("ready to shoot")
+StrikerAction.TooFarFromBall = Action("too far from ball")
+StrikerAction.FacingOpponentsGoal = Action("facing opponents goal")
+StrikerAction.LostBall = Action("lost ball")
+StrikerAction.FoundBall = Action("found ball")
+StrikerAction.CloseToBall = Action("close to ball")
 
 
 class TurnForOpponentGoal(State):
