@@ -1,18 +1,20 @@
 from State import State
 from StateMachine import StateMachine
+from StrikerAction import StrikerAction
 
 
 class TurnForOpponentGoal(State):
 
     def run(self):
+        State.name = "TurnForOpponentGoal"
         print("turning")
 
     def next(self, input):
-        if input == Striker.ReadyToShoot:
+        if input == StrikerAction.ReadyToShoot:
             return Striker.Shoot
-        if input == Striker.TooFarFromBall:
+        if input == StrikerAction.TooFarFromBall:
             return Striker.GoToBall
-        if input == Striker.FacingOpponentsGoal:
+        if input == StrikerAction.FacingOpponentsGoal:
             return Striker.Dribble
         return Striker.TurnForOpponentGoal
 
@@ -20,12 +22,13 @@ class TurnForOpponentGoal(State):
 class Shoot(State):
 
     def run(self):
+        State.name = "Shoot"
         print("shooting")
 
     def next(self, input):
-        if input == Striker.LostBall:
+        if input == StrikerAction.LostBall:
             return Striker.SearchBall
-        if input == Striker.TooFarFromBall:
+        if input == StrikerAction.TooFarFromBall:
             return Striker.GoToBall
         return Striker.TurnForOpponentGoal
 
@@ -33,6 +36,7 @@ class Shoot(State):
 class Dribble(State):
 
     def run(self):
+        State.name = "Dribble"
         print("dribbling")
 
     def next(self, input):
@@ -42,10 +46,11 @@ class Dribble(State):
 class SearchBall(State):
 
     def run(self):
+        State.name = "SearchBall"
         print("searching")
 
     def next(self, input):
-        if input == Striker.FoundBall:
+        if input == StrikerAction.FoundBall:
             return Striker.GoToBall
         return Striker.SearchBall
 
@@ -53,12 +58,13 @@ class SearchBall(State):
 class GoToBall(State):
 
     def run(self):
+        State.name = "GoToBall"
         print("going to the Ball")
 
     def next(self, input):
-        if input == Striker.LostBall:
+        if input == StrikerAction.LostBall:
             return Striker.SearchBall
-        if input == Striker.CloseToBall:
+        if input == StrikerAction.CloseToBall:
             return Striker.TurnForOpponentGoal
         return Striker.GoToBall
 
@@ -75,3 +81,9 @@ Striker.Shoot = Shoot()
 Striker.Dribble = Dribble()
 Striker.SearchBall = SearchBall()
 Striker.GoToBall = GoToBall()
+
+if __name__ == '__main__':
+    s = Striker()
+    print(s)
+    s.runAll([StrikerAction.TooFarFromBall])
+    print(s)

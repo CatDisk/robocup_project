@@ -8,6 +8,9 @@ class StateMachine:
     def __init__(self, initialState):
         self.currentState = initialState
         self.currentState.run()
+
+    def __str__(self): return self.currentState.toStr()
+
     # Template method:
     def runAll(self, inputs):
         for i in inputs:

@@ -4,6 +4,11 @@
 
 
 class State:
+    name = "not named"
+
+    def toStr(self):
+        return self.name
+    def __str__(self): return self.name
 
     def run(self):
         assert 0, "run not implemented"
