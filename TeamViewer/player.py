@@ -4,7 +4,8 @@ import numpy as np
 from utils import *
 
 class Player():
-    def __init__(self, pos, direction, speed, sprite, display):
+    def __init__(self, id, pos, direction, speed, sprite, display):
+        self.id = id
         self.sprite = sprite
         self.speed = speed
         self.current_speed = np.zeros(2)
