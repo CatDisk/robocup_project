@@ -69,8 +69,9 @@ class Striker(StateMachine):
         StateMachine.__init__(self, Striker.TurnForOpponentGoal)
 
 
+# Static variable initialization:
 Striker.TurnForOpponentGoal = TurnForOpponentGoal()
 Striker.Shoot = Shoot()
 Striker.Dribble = Dribble()
-Striker.SearchBall = SearcgBall()
+Striker.SearchBall = SearchBall()
 Striker.GoToBall = GoToBall()
