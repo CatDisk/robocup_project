@@ -16,9 +16,10 @@ LookingAction.CantFindBallInPos = LookingAction("can't find the ball in current 
 class LookForBall(State):
 
     def run(self):
+        # Todo turn head if we find the ball return True else return CantFindBallInPos
         State.name = "LookForBall"
         print("looking")
-
+        return True
     def next(self, input):
         if input == LookingAction.CantFindBallInPos:
             return SearchForBall.TurnForBall
@@ -28,9 +29,10 @@ class LookForBall(State):
 class TurnForBall(State):
 
     def run(self):
+        # TODO turn the robot and return something(not True)
         State.name = "TurnForBall"
         print("turning")
-
+        return 0
     def next(self, input):
         return SearchForBall.LookForBall
 
