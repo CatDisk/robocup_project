@@ -1,7 +1,7 @@
 from State import State
 from StateMachine import StateMachine
 from Action import Action
-
+from SearchForBall import SearchForBall
 
 class StrikerAction(Action):
 
@@ -22,6 +22,7 @@ class TurnForOpponentGoal(State):
     def run(self):
         State.name = "TurnForOpponentGoal"
         print("turning")
+        return True
 
     def next(self, input):
         if input == StrikerAction.ReadyToShoot:
@@ -38,6 +39,7 @@ class Shoot(State):
     def run(self):
         State.name = "Shoot"
         print("shooting")
+        return True
 
     def next(self, input):
         if input == StrikerAction.LostBall:
@@ -52,6 +54,7 @@ class Dribble(State):
     def run(self):
         State.name = "Dribble"
         print("dribbling")
+        return True
 
     def next(self, input):
         return Striker.GoToBall
@@ -60,8 +63,10 @@ class Dribble(State):
 class SearchBall(State):
 
     def run(self):
+        # TODO start new state machine SearchForBall
         State.name = "SearchBall"
         print("searching")
+        return True
 
     def next(self, input):
         if input == StrikerAction.FoundBall:
@@ -74,6 +79,8 @@ class GoToBall(State):
     def run(self):
         State.name = "GoToBall"
         print("going to the Ball")
+        return True
+
 
     def next(self, input):
         if input == StrikerAction.LostBall:
@@ -99,5 +106,5 @@ Striker.GoToBall = GoToBall()
 if __name__ == '__main__':
     s = Striker()
     print(s)
-    s.runAll([StrikerAction.TooFarFromBall])
+    s.run()
     print(s)

@@ -10,6 +10,7 @@ class State:
         return self.name
     def __str__(self): return self.name
 
+    # return next state or true to stop the runnung process
     def run(self):
         assert 0, "run not implemented"
         
