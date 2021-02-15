@@ -6,11 +6,11 @@ class GameController():
         self.game_inbox = game_inbox
         self.running = True
 
-    def move_player(self, player_id, pos) -> Message:
+    def move_player(self, player_id, pos, dir) -> Message:
         order = {
             "target": player_id,
             "action": "move",
-            "params": pos,
+            "params": [pos, dir]
         }
         return self.msg_handler("order", json.dumps(order), "out")
 
@@ -24,15 +24,16 @@ class GameController():
         if inpt[0] == "help":
             print("Available commands:\n")
             print("help")
-            print("move <player_id> <x> <y>")
+            print("move <player id> <x> <y> <movement direction>")
             print("quit")
         elif inpt[0] == "move":
-            if len(inpt) == 4:
+            if len(inpt) == 5:
                 try:
                     id = int(inpt[1])
                     x = float(inpt[2])
                     y = float(inpt[3])
-                    self.game_inbox.append(self.move_player(id, (x, y)))
+                    dir = inpt[4]
+                    self.game_inbox.append(self.move_player(id, (x, y), dir))
                 except:
                     print("Something went wrong!")
             else:
