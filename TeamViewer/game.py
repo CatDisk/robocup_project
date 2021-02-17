@@ -6,6 +6,7 @@ import threading
 
 from field import Field
 from player import Player
+from ball import Ball
 from message import Message
 from game_controller import GameController
 
@@ -28,6 +29,7 @@ class Game():
             "red": pygame.image.load("./assets/player_red.png"),
             "blue": pygame.image.load("./assets/player_blue.png"),
         }
+        self.ball = Ball((WIDTH / 2, HEIGHT / 2), self.display)
         self.inbox = []
         self.outbox = []
 
@@ -59,6 +61,7 @@ class Game():
                     self.running = False
             self.msg_handler()
             self.field.update()
+            self.ball.update()
             for entity in self.players:
                 entity.update()
 
