@@ -69,7 +69,6 @@ class Game():
     def start(self):
         pygame.display.flip()
         #main game loop
-        bump = True
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
