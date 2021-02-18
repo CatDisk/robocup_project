@@ -32,7 +32,6 @@ class Game():
         }
         self.ball = Ball((WIDTH / 2, HEIGHT / 2), self.display)
         self.inbox = []
-        self.outbox = []
 
     def add_player(self,pos, dir, team = "red"):
         #player id corresponds to index in players list
@@ -48,8 +47,9 @@ class Game():
                 dist = np.linalg.norm(pos1 - pos2)
                 if dist < 45:
                     print("collision between {} and {} at  {}".format(i, j, pos1))
-                    self.players[i].report_collision(pos2)
-                    self.players[j].report_collision(pos1)
+                    report1 = self.players[i].report_collision(pos2)
+                    report2 = self.players[j].report_collision(pos1)
+
         
         #TODO player-ball collisions
 
@@ -63,6 +63,8 @@ class Game():
                         self.players[payload["target"]].go_to(payload["params"][0], payload["params"][1])
                     elif payload["action"] == "look":
                         self.players[payload["target"]].move_head(payload["params"][0])
+                    elif payload["action"] == "kick":
+                        self.ball.kick(payload["params"][0])
                 elif msg.msg_type == "quit":
                     self.running = False
 
