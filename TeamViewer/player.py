@@ -35,8 +35,10 @@ class Player():
         #update looking direction
         if not np.isclose(self.target_head_angle, self.dir_head, atol= 0.5):
             self.dir_head += self.current_head_speed
-
-        self.display.blit(pygame.transform.rotate(self.sprite, (self.dir_body - 90 + self.dir_head)), vec2tuple(self.position))
+        else:
+            self.current_head_speed = 0
+        sprite_offset = np.array([16, 22.5])
+        self.display.blit(pygame.transform.rotate(self.sprite, (self.dir_body - 90 + self.dir_head)), vec2tuple(self.position - sprite_offset))
 
     def move_head(self, target_dir):
         if target_dir > 119.5:
@@ -51,6 +53,25 @@ class Player():
         else:
             self.current_head_speed = self.head_yaw_speed
 
+    def report_collision(self, pos) -> str:
+        #check if responsible
+        impact_dir = normalize(pos - self.position)
+        impact_dir = rad2deg(np.arctan2(impact_dir[0], impact_dir[1]))
+        if np.isclose(impact_dir, self.dir_body, atol = 30):
+            if not np.allclose(self.current_speed, np.zeros(2), atol= 0.001):
+                print("Player {} is responsible".format(self.id))
+                self.current_speed = self.current_speed * 0
+                #'bounce' player out of colision retection range
+                self.position[0] += np.sin(deg2rad(self.dir_body + 180))
+                self.position[1] += np.cos(deg2rad(self.dir_body + 180))
+            if impact_dir < self.dir_body:
+                print("Impact on the right")
+                return "right"
+            else:
+                print("Impact on the left")
+                return "left"
+        else:
+            return "none"
     
     def go_to(self, pos, dir):
         width, height = self.display.get_size()

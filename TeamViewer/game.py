@@ -3,6 +3,7 @@ from pygame import display
 from pygame.locals import *
 import json
 import threading
+import numpy as np
 
 from field import Field
 from player import Player
@@ -10,8 +11,8 @@ from ball import Ball
 from message import Message
 from game_controller import GameController
 
-HEIGHT = 64 * 7
-WIDTH = 64 * 12
+HEIGHT = 64 * 10
+WIDTH = 64 * 18
 FPS = 60
 
 class Game():
@@ -38,6 +39,20 @@ class Game():
         id = len(self.players)
         self.players.append(Player(id, pos, dir, self.player_speed, self.player_spites[team], self.display))
 
+    def check_collisions(self):
+        #player-player collisions
+        for i in range(len(self.players)):
+            pos1 = self.players[i].position
+            for j in range(i+1, len(self.players)):
+                pos2 = self.players[j].position
+                dist = np.linalg.norm(pos1 - pos2)
+                if dist < 45:
+                    print("collision between {} and {} at  {}".format(i, j, pos1))
+                    self.players[i].report_collision(pos2)
+                    self.players[j].report_collision(pos1)
+        
+        #TODO player-ball collisions
+
     def msg_handler(self, mode='in', body = None):
         if mode == 'in':
             while len(self.inbox) > 0:
@@ -54,6 +69,7 @@ class Game():
     def start(self):
         pygame.display.flip()
         #main game loop
+        bump = True
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -62,6 +78,7 @@ class Game():
                         controller_thread.join()
                     self.running = False
             self.msg_handler()
+            self.check_collisions()
             self.field.update()
             self.ball.update()
             for entity in self.players:
@@ -73,7 +90,7 @@ class Game():
 if __name__ == "__main__":
     game = Game()
     controller = GameController(game.inbox)
-    game.add_player((100, 100), 0)
+    game.add_player((120, 100), 0)
     game.add_player((100, 300), 180, "blue")
     controller_thread = threading.Thread(target = controller.run)
     controller_thread.start()
