@@ -1,4 +1,3 @@
-from numpy.core.numeric import allclose
 import pygame
 import numpy as np
 from utils import *
