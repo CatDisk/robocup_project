@@ -8,7 +8,10 @@ class Player():
         self.id = id
         self.sprite = sprite
         self.speed = speed
+        self.head_yaw_speed = 45 / 60
         self.current_speed = np.zeros(2)
+        self.current_head_speed = 0
+        self.target_head_angle = 0
         self.dir_body = direction
         self.dir_head = 0 #'head' position relative to self.dir
         self.target = np.array([pos[0], pos[1]])
@@ -23,12 +26,31 @@ class Player():
         return vec2tuple(self.position)
 
     def update(self):
+        #update movement
         if np.isclose(self.target[0], self.position[0], atol= 0.5) and np.isclose(self.target[1], self.position[1], atol= 0.5):
             self.current_speed[0] = 0
             self.current_speed[1] = 0
         else:
             self.position = self.position + self.current_speed
+        #update looking direction
+        if not np.isclose(self.target_head_angle, self.dir_head, atol= 0.5):
+            self.dir_head += self.current_head_speed
+
         self.display.blit(pygame.transform.rotate(self.sprite, (self.dir_body - 90 + self.dir_head)), vec2tuple(self.position))
+
+    def move_head(self, target_dir):
+        if target_dir > 119.5:
+            print("Angle too great!")
+            target_dir = 119.5
+        elif target_dir < -119.5:
+            print("Angle too small!")
+            target_dir = -119.5
+        self.target_head_angle = target_dir
+        if self.target_head_angle < self.dir_head:
+            self.current_head_speed = -self.head_yaw_speed
+        else:
+            self.current_head_speed = self.head_yaw_speed
+
     
     def go_to(self, pos, dir):
         width, height = self.display.get_size()

@@ -46,6 +46,8 @@ class Game():
                     payload = json.loads(msg.payload)
                     if payload["action"] == "move":
                         self.players[payload["target"]].go_to(payload["params"][0], payload["params"][1])
+                    elif payload["action"] == "look":
+                        self.players[payload["target"]].move_head(payload["params"][0])
                 elif msg.msg_type == "quit":
                     self.running = False
 
