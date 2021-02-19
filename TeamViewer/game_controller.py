@@ -100,6 +100,8 @@ class GameController():
                     print("Something went wrong!")
             else:
                 print("Not a valid input. enter \'help\' for all commands")
+        elif inpt[0] == "reset":
+           self.game_inbox.append(Message("reset", None))
         elif inpt[0] == "quit":
             self.running = False
             self.game_inbox.append(Message("quit", None))

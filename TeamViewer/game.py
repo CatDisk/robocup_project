@@ -24,6 +24,7 @@ class Game():
         self.player_speed = 1
         self.running = True
         self.players = []
+        self.starting_pos = []
         self.field = Field(self.display)
         self.field.update()
         self.player_spites = {
@@ -37,6 +38,15 @@ class Game():
         #player id corresponds to index in players list
         id = len(self.players)
         self.players.append(Player(id, pos, dir, self.player_speed, self.player_spites[team], self.display))
+        self.starting_pos.append((np.array([pos[0], pos[1]]), dir))
+
+    def reset_all(self):
+        iter_starting_pos = iter(self.starting_pos)
+        for player in self.players:
+            player_pos = next(iter_starting_pos)
+            np.copyto(player.position, player_pos[0])
+            player.dir_body = player_pos[1]
+            player.current_speed *= 0
 
     def check_collisions(self):
         #player-player collisions
@@ -67,6 +77,8 @@ class Game():
                         self.ball.kick(payload["params"][0])
                 elif msg.msg_type == "quit":
                     self.running = False
+                elif msg.msg_type == "reset":
+                    self.reset_all()
 
     def start(self):
         pygame.display.flip()
@@ -91,8 +103,8 @@ class Game():
 if __name__ == "__main__":
     game = Game()
     controller = GameController(game.inbox)
-    game.add_player((120, 100), 0)
-    game.add_player((100, 300), 180, "blue")
+    game.add_player((100, 100), 0)
+    game.add_player((100, 160), 180, "blue")
     controller_thread = threading.Thread(target = controller.run)
     controller_thread.start()
     game.start()
