@@ -30,6 +30,14 @@ class GameController():
             "params": [deg]
         }
         self.msg_handler("order", json.dumps(order), "out")
+    
+    def can_see_ball(self, player_id):
+        order = {
+            "target": player_id,
+            "action": "can see ball",
+            "params": []
+        }
+        self.msg_handler("order", json.dumps(order), "out")
 
     def msg_handler(self, msg_type, payload, mode='out') -> Message:
         message: Message
@@ -68,6 +76,8 @@ class GameController():
             print("move <player id> <x> <y> <movement direction>")
             print("look <player id> <deg>")
             print("kick <deg>")
+            print("see ball <player id>")
+            print("reset")
             print("quit")
         elif inpt[0] == "move":
             if len(inpt) == 5:
@@ -87,6 +97,15 @@ class GameController():
                     id = int(inpt[1])
                     deg = float(inpt[2])
                     self.look(id, deg)
+                except:
+                    print("Something went wrong!")
+            else:
+                print("Not a valid input. enter \'help\' for all commands")
+        elif inpt[0] == "see" and inpt[1] == "ball":
+            if len(inpt) == 3:
+                try:
+                    id = int(inpt[2])
+                    self.can_see_ball(id)
                 except:
                     print("Something went wrong!")
             else:

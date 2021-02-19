@@ -13,11 +13,12 @@ class Player():
         self.current_head_speed = 0
         self.target_head_angle = 0
         self.dir_body = direction
-        self.dir_head = 0 #'head' position relative to self.dir
+        self.dir_head = 0 #'head' position relative to self.dir_body
         self.target = np.array([pos[0], pos[1]])
         self.position = np.array([pos[0], pos[1]])
         self.display = display
         self.fov = 56.3 #HFOV of the NAO robot Camera (67.4°DFOV)
+        self.ball_pos = None
 
     def set_speed(self, speed):
         self.speed = speed
@@ -42,16 +43,28 @@ class Player():
 
     def move_head(self, target_dir):
         if target_dir > 119.5:
-            print("Angle too great!")
+            self.debug_print("Angle too great!")
             target_dir = 119.5
         elif target_dir < -119.5:
-            print("Angle too small!")
+            self.debug_print("Angle too small!")
             target_dir = -119.5
         self.target_head_angle = target_dir
         if self.target_head_angle < self.dir_head:
             self.current_head_speed = -self.head_yaw_speed
         else:
             self.current_head_speed = self.head_yaw_speed
+
+    def can_see_ball(self, ball_pos):
+        ball_dir = normalize(ball_pos - self.position)
+        ball_dir = np.rad2deg(np.arctan2(ball_dir[0], ball_dir[1]))
+        if np.isclose(ball_dir, (self.dir_body + self.dir_head), atol=self.fov):
+            self.ball_pos = ball_pos
+            self.debug_print("can see the ball")
+            return True
+        else:
+            self.ball_pos = None
+            self.debug_print("can't see the ball")
+            return False
 
     def report_collision(self, pos) -> str:
         #check if responsible
@@ -60,15 +73,15 @@ class Player():
         impact_dir = rad2deg(np.arctan2(impact_dir[0], impact_dir[1]))
         if np.isclose(impact_dir, rad2deg(np.arctan2(self.current_speed[0], self.current_speed[1])), atol = 30):
             if not np.allclose(self.current_speed, np.zeros(2), atol= 0.001):
-                print("Player {} is responsible".format(self.id))
+                self.debug_print("Responsible for collision")
                 #'bounce' player out of colision retection range
                 self.position -= 2 * self.current_speed
             if impact_dir < rad2deg(np.arctan2(self.current_speed[0], self.current_speed[1])):
-                print("Player {}: Impact on the right".format(self.id))
+                self.debug_print("Impact on the right")
                 self.current_speed = self.current_speed * 0
                 return "right"
             else:
-                print("Player {}: Impact on the left".format(self.id))
+                self.debug_print("Impact on the left")
                 self.current_speed = self.current_speed * 0
                 return "left"
         else:
@@ -77,7 +90,7 @@ class Player():
     def go_to(self, pos, dir):
         width, height = self.display.get_size()
         if (pos[0] < 0 or pos[0] > width) or (pos[1] < 0 or pos[1] > height):
-            print('Posiiton is outside of map. Current map size is {} x {}'.format(width, height))
+            self.debug_print('Posiiton is outside of map. Current map size is {} x {}'.format(width, height))
             return -1
         else:
             self.target[0] = pos[0]
@@ -101,7 +114,7 @@ class Player():
                 self.current_speed[1] = self.speed * np.cos(deg2rad(self.dir_body))
                 self.dir_body += 180
             else:
-                print("\"{}\" is not a valid direction".format(dir))
+                self.debug_print("\"{}\" is not a valid direction".format(dir))
 
-    def print_display_size(self):
-        print(self.display.get_size())
+    def debug_print(self, output):
+        print("Player {}: {}".format(self.id, output))

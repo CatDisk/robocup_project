@@ -75,6 +75,8 @@ class Game():
                         self.players[payload["target"]].move_head(payload["params"][0])
                     elif payload["action"] == "kick":
                         self.ball.kick(payload["params"][0])
+                    elif payload["action"] == "can see ball":
+                        self.players[payload["target"]].can_see_ball(self.ball.pos)
                 elif msg.msg_type == "quit":
                     self.running = False
                 elif msg.msg_type == "reset":
