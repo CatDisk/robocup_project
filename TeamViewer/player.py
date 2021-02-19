@@ -55,20 +55,21 @@ class Player():
 
     def report_collision(self, pos) -> str:
         #check if responsible
+        #TODO fix collsions when walking direction != body direction
         impact_dir = normalize(pos - self.position)
         impact_dir = rad2deg(np.arctan2(impact_dir[0], impact_dir[1]))
-        if np.isclose(impact_dir, self.dir_body, atol = 30):
+        if np.isclose(impact_dir, rad2deg(np.arctan2(self.current_speed[0], self.current_speed[1])), atol = 30):
             if not np.allclose(self.current_speed, np.zeros(2), atol= 0.001):
                 print("Player {} is responsible".format(self.id))
-                self.current_speed = self.current_speed * 0
                 #'bounce' player out of colision retection range
-                self.position[0] += np.sin(deg2rad(self.dir_body + 180))
-                self.position[1] += np.cos(deg2rad(self.dir_body + 180))
-            if impact_dir < self.dir_body:
-                print("Impact on the right")
+                self.position -= 2 * self.current_speed
+            if impact_dir < rad2deg(np.arctan2(self.current_speed[0], self.current_speed[1])):
+                print("Player {}: Impact on the right".format(self.id))
+                self.current_speed = self.current_speed * 0
                 return "right"
             else:
-                print("Impact on the left")
+                print("Player {}: Impact on the left".format(self.id))
+                self.current_speed = self.current_speed * 0
                 return "left"
         else:
             return "none"
