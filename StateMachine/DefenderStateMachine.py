@@ -19,10 +19,9 @@ DefenderAction.BallIsOnOpponentsHalf = Action("Ball is on opponents half")
 class StayPut(State):
 
     def run(self):
-        # TODO wait for instructions
+        #wait for instructions
         State.name = "StayPut"
         print("staying put")
-        return True
 
     def next(self, input):
         if input == DefenderAction.LostBall:
@@ -37,16 +36,14 @@ class StayPut(State):
 class GoToAttackPosition(State):
 
     def run(self):
-        #TODO step to the left
         State.name = "GoToAttackPosition"
         print("going to attack position")
-        return True
 
     def next(self, input):
         if input == DefenderAction.LostBall:
             return Defender.SearchBall
         if input == DefenderAction.HasBall:
-            return Defender.PassToNearestStriker
+            return Defender.Pass
         if input == DefenderAction.BallIsOnYourHalf:
             return Defender.StayPut
         return Defender.GoToAttackPosition
@@ -55,10 +52,9 @@ class GoToAttackPosition(State):
 class GoToDefendPosition(State):
 
     def run(self):
-        # TODO step to the right
         State.name = "GoToDefendPosition"
         print("going to defend position")
-        return True
+
 
     def next(self, input):
         if input == DefenderAction.LostBall:
@@ -75,9 +71,6 @@ class SearchBall(State):
     def run(self):
         State.name = "SearchBall"
         print("searching")
-        search = SearchForBall()
-        search.run()
-        return DefenderAction.FoundBall
 
     def next(self, input):
         if input == DefenderAction.FoundBall:
@@ -90,7 +83,6 @@ class GoToBall(State):
     def run(self):
         State.name = "GoToBall"
         print("going to the ball")
-        return True
 
     def next(self, input):
         if input == DefenderAction.LostBall:
@@ -98,14 +90,14 @@ class GoToBall(State):
         if input == DefenderAction.BallIsOnOpponentsHalf:
             return Defender.StayPut
         if input == DefenderAction.HasBall:
-            return Defender.PassToNearestStriker
+            return Defender.Pass
         return Defender.GoToGoal
 
 
-class PassToNearestStriker(State):
+class Pass(State):
 
     def run(self):
-        # TODO pass to striker (create a state machine)
+        # pass to striker (create a state machine)
         State.name = "Pass"
         print("Passing to nearest striker")
         return True
@@ -124,7 +116,7 @@ class Defender(StateMachine):
 Defender.StayPut = StayPut()
 Defender.GoToAttackPosition = GoToAttackPosition()
 Defender.GoToDefendPosition = GoToDefendPosition()
-Defender.PassToNearestStriker = PassToNearestStriker()
+Defender.Pass = Pass()
 Defender.GoToBall = GoToBall()
 Defender.SearchBall = SearchBall()
 

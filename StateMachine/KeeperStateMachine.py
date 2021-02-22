@@ -20,10 +20,9 @@ KeeperAction.BallApproachesRight = Action("Ball is approaching on the right side
 class StayPut(State):
 
     def run(self):
-        # TODO wait for instructions
+        #  wait for instructions
         State.name = "StayPut"
         print("staying put")
-        return True
 
     def next(self, input):
         if input == KeeperAction.LostBall:
@@ -42,10 +41,9 @@ class StayPut(State):
 class GoLeft(State):
 
     def run(self):
-        #TODO step to the left
+        # step to the left
         State.name = "GoLeft"
         print("going left")
-        return True
 
     def next(self, input):
         return Keeper.StayPut
@@ -54,10 +52,9 @@ class GoLeft(State):
 class GoRight(State):
 
     def run(self):
-        # TODO step to the right
+        # step to the right
         State.name = "GoRight"
         print("going right")
-        return True
 
     def next(self, input):
         return Keeper.StayPut
@@ -68,9 +65,6 @@ class SearchBall(State):
     def run(self):
         State.name = "SearchBall"
         print("searching")
-        search = SearchForBall()
-        search.run()
-        return KeeperAction.FoundBall
 
     def next(self, input):
         if input == KeeperAction.FoundBall:
@@ -83,7 +77,6 @@ class GoToGoal(State):
     def run(self):
         State.name = "GoToGoal"
         print("going to the goal")
-        return True
 
     def next(self, input):
         if input == KeeperAction.IsAtGoal:
@@ -94,10 +87,9 @@ class GoToGoal(State):
 class Pass(State):
 
     def run(self):
-        # TODO pass to player (create a state machine)
+        # pass to player (create a state machine)
         State.name = "Pass"
         print("Passing to nearest free player")
-        return True
 
     def next(self, input):
         return Keeper.StayPut

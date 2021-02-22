@@ -12,14 +12,9 @@ class StateMachine:
     def __str__(self): return self.currentState.toStr()
 
     # run function goes until it stops(a state returns true)
-    def run(self):
-        stop = False
-        while not stop:
-            input = self.currentState.run()
-            self.currentState = self.currentState.next(input)
-            if(input == True):
-                stop = True
-
+    def run(self, input):
+        self.currentState = self.currentState.next(input)
+        self.currentState.run()
 
     # Template method:
     def runAll(self, inputs):

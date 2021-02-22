@@ -20,10 +20,9 @@ StrikerAction.CloseToBall = Action("close to ball")
 class TurnForOpponentGoal(State):
 
     def run(self):
-        # TODO turn the robot to opponents goal and return an action
+        #turn the robot to opponents goal
         State.name = "TurnForOpponentGoal"
         print("turning")
-        return True
 
     def next(self, input):
         if input == StrikerAction.ReadyToShoot:
@@ -38,10 +37,9 @@ class TurnForOpponentGoal(State):
 class Shoot(State):
 
     def run(self):
-        # TODO shoot the ball and return an action
+        #shoot the ball
         State.name = "Shoot"
         print("shooting")
-        return True
 
     def next(self, input):
         if input == StrikerAction.LostBall:
@@ -54,10 +52,9 @@ class Shoot(State):
 class Dribble(State):
 
     def run(self):
-        # TODO shoot the ball return something (not True)
+        # shoot the ball
         State.name = "Dribble"
         print("dribbling")
-        return True
 
     def next(self, input):
         return Striker.GoToBall
@@ -68,9 +65,7 @@ class SearchBall(State):
     def run(self):
         State.name = "SearchBall"
         print("searching")
-        search = SearchForBall()
-        search.run()
-        return StrikerAction.FoundBall
+
 
     def next(self, input):
         if input == StrikerAction.FoundBall:
@@ -81,10 +76,9 @@ class SearchBall(State):
 class GoToBall(State):
 
     def run(self):
-        # TODO go to the ball return action
+        # go to the ball
         State.name = "GoToBall"
         print("going to the Ball")
-        return True
 
 
     def next(self, input):
