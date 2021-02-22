@@ -4,6 +4,7 @@ from pygame.locals import *
 import json
 import threading
 import numpy as np
+from utils import *
 
 from field import Field
 from player import Player
@@ -47,8 +48,11 @@ class Game():
             np.copyto(player.position, player_pos[0])
             player.dir_body = player_pos[1]
             player.current_speed *= 0
+        self.ball.pos = np.array([WIDTH / 2, HEIGHT / 2])
+        self.ball.current_speed = np.array([0, 0])
 
     def check_collisions(self):
+        pos_ball = self.ball.pos
         #player-player collisions
         for i in range(len(self.players)):
             pos1 = self.players[i].position
@@ -60,8 +64,20 @@ class Game():
                     report1 = self.players[i].report_collision(pos2)
                     report2 = self.players[j].report_collision(pos1)
 
-        
-        #TODO player-ball collisions
+            #player-ball collisions
+            dist = np.linalg.norm(pos1 - pos_ball)
+            if dist < 30:
+                normal = normalize(pos1 - pos_ball)
+                self.ball.bounce(normal)
+        #ball-wall collision
+        if self.ball.pos[0] < 10:
+            self.ball.bounce(np.array([1, 0]))
+        elif self.ball.pos[0] > WIDTH - 10:
+            self.ball.bounce(np.array([-1, 0]))
+        elif self.ball.pos[1] < 10:
+            self.ball.bounce(np.array([0, 1]))
+        elif self.ball.pos[1] > HEIGHT - 10:
+            self.ball.bounce(np.array([0, -1]))
 
     def msg_handler(self, mode='in', body = None):
         if mode == 'in':
@@ -105,7 +121,7 @@ class Game():
 if __name__ == "__main__":
     game = Game()
     controller = GameController(game.inbox)
-    game.add_player((100, 100), 0)
+    game.add_player((WIDTH / 2 - 100, HEIGHT / 2 - 100), 0)
     game.add_player((100, 160), 180, "blue")
     controller_thread = threading.Thread(target = controller.run)
     controller_thread.start()
