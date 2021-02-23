@@ -97,7 +97,10 @@ class Game():
                     elif payload["action"] == "look":
                         self.players[payload["target"]].move_head(payload["params"][0])
                     elif payload["action"] == "kick":
-                        self.ball.kick(payload["params"][0])
+                        if payload["target"] == "ball":
+                            self.ball.kick(payload["params"][0])
+                        else:
+                            self.players[payload["target"]].kick(self.ball)
                     elif payload["action"] == "can see ball":
                         self.players[payload["target"]].can_see_ball(self.ball.pos)
                 elif msg.msg_type == "quit":

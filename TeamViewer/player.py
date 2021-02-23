@@ -1,7 +1,7 @@
-from typing import Tuple
 import pygame
 import numpy as np
 from utils import *
+from ball import Ball
 
 class Player():
     def __init__(self, id, pos, direction, speed, sprite, display, def_pos = (0,0)):
@@ -66,6 +66,19 @@ class Player():
             self.ball_pos = None
             self.debug_print("can't see the ball")
             return False
+
+    def kick(self, ball: Ball):
+        dist = ball.pos - self.position
+        angle = rad2deg(np.arctan2(dist[0], dist[1]))
+        dist = np.linalg.norm(dist)
+        if dist < 40 and np.isclose(angle, self.dir_body, atol=30):
+            ball.kick(self.dir_body)
+            self.debug_print("kick success")
+            return True
+        else:
+            self.debug_print("kick failure")
+            return False
+
 
     def report_collision(self, pos) -> str:
         #check if responsible

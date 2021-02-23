@@ -23,11 +23,19 @@ class GameController():
         }
         self.msg_handler("order", json.dumps(order), "out")
     
-    def kick(self, deg):
+    def move_ball(self, deg):
         order = {
             "target": "ball",
             "action": "kick",
             "params": [deg]
+        }
+        self.msg_handler("order", json.dumps(order), "out")
+
+    def kick(self, player_id):
+        order = {
+            "target": player_id,
+            "action": "kick",
+            "params": []
         }
         self.msg_handler("order", json.dumps(order), "out")
     
@@ -75,8 +83,9 @@ class GameController():
             print("help")
             print("move <player id> <x> <y> <movement direction>")
             print("look <player id> <deg>")
-            print("kick <deg>")
+            print("kick <player id>")
             print("see ball <player id>")
+            print("move ball <angle>")
             print("reset")
             print("quit")
         elif inpt[0] == "move":
@@ -110,10 +119,19 @@ class GameController():
                     print("Something went wrong!")
             else:
                 print("Not a valid input. enter \'help\' for all commands")
+        elif inpt[0] == "move ball":
+            if len(inpt) == 3:
+                try:
+                    deg = float(inpt[2])
+                    self.move_ball(deg)
+                except:
+                    print("Something went wrong!")
+            else:
+                print("Not a valid input. enter \'help\' for all commands")
         elif inpt[0] == "kick":
             if len(inpt) == 2:
                 try:
-                    deg = float(inpt[1])
+                    deg = int(inpt[1])
                     self.kick(deg)
                 except:
                     print("Something went wrong!")
