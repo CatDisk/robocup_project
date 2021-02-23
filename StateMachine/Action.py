@@ -4,8 +4,8 @@ class Action:
 
     def __str__(self): return self.action
 
-    def __cmp__(self, other):
-        return cmp(self.action, other.action)
+    def __eq__(self, other):
+        return self.action == other.action
     # Necessary when __cmp__ or __eq__ is defined
     # in order to make this class usable as a
     # dictionary key:
