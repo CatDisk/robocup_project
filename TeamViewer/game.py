@@ -12,7 +12,7 @@ from ball import Ball
 from message import Message
 from game_controller import GameController
 
-HEIGHT = 64 * 10
+HEIGHT = 64 * 10 #has to be even number of tiles
 WIDTH = 64 * 18
 FPS = 60
 
@@ -67,8 +67,15 @@ class Game():
             #player-ball collisions
             dist = np.linalg.norm(pos1 - pos_ball)
             if dist < 30:
-                normal = normalize(pos1 - pos_ball)
-                self.ball.bounce(normal)
+                less_speed = np.linalg.norm(self.players[i].current_speed) > np.linalg.norm(self.ball.current_speed)
+                same_dir = np.isclose(self.players[i].dir_body, self.ball.dir, atol=45)
+                no_ball_speed = np.allclose(self.ball.current_speed, np.zeros(2))
+                if (less_speed and same_dir) or no_ball_speed:
+                    self.ball.bump(self.players[i].dir_body)
+                else:
+                    normal = normalize(pos1 - pos_ball)
+                    self.ball.bounce(normal)
+
         #ball-wall collision
         if self.ball.pos[0] < 10:
             self.ball.bounce(np.array([1, 0]))
@@ -121,7 +128,8 @@ class Game():
 if __name__ == "__main__":
     game = Game()
     controller = GameController(game.inbox)
-    game.add_player((WIDTH / 2 - 100, HEIGHT / 2 - 100), 0)
+    game.add_player((WIDTH / 2 - 50, HEIGHT / 2), 90, "red")
+    print((WIDTH / 2 + 50, HEIGHT / 2))
     game.add_player((100, 160), 180, "blue")
     controller_thread = threading.Thread(target = controller.run)
     controller_thread.start()
