@@ -7,10 +7,16 @@ class Field():
         self.sprite_dict = {
             "corner": pygame.image.load("./assets/corner.png"),
             "border": pygame.image.load("./assets/border.png"),
-            "center": pygame.image.load("./assets/center.png")
+            "center": pygame.image.load("./assets/center.png"),
+            "goal_top": pygame.image.load("./assets/goal_top_border.png"),
+            "goal_mid": pygame.image.load("./assets/goal_mid_border.png"),
+            "goal_bot": pygame.image.load("./assets/goal_bottom_border.png"),
         }
+        self.goal_size_tiles = 4 #has to be even, smallest size 2
         self.field_tiles = []
         self.__build_field__()
+        self.__add_goals__()
+
     
     def __build_field__ (self):
         tile = self.sprite_dict["corner"]
@@ -49,6 +55,26 @@ class Field():
                     "angle": angle,
                 })
 
+    def __add_goals__(self):
+        start_index = int(((self.height / 64) / 2) - (self.goal_size_tiles / 2))
+        print(type(start_index))
+        for n in range(start_index, start_index + self.goal_size_tiles):
+            if n == start_index:
+                self.field_tiles[n]["tile"] = self.sprite_dict["goal_top"]
+                self.field_tiles[n]["angle"] = 0
+                self.field_tiles[n + int(((self.width / 64) - 1) * (self.height / 64))]["tile"] = self.sprite_dict["goal_bot"]
+                self.field_tiles[n + int(((self.width / 64) - 1) * (self.height / 64))]["angle"] = 180
+            elif n == (start_index + self.goal_size_tiles) - 1:
+                self.field_tiles[n]["tile"] = self.sprite_dict["goal_bot"]
+                self.field_tiles[n]["angle"] = 0
+                self.field_tiles[n + int(((self.width / 64) - 1) * (self.height / 64))]["tile"] = self.sprite_dict["goal_top"]
+                self.field_tiles[n + int(((self.width / 64) - 1) * (self.height / 64))]["angle"] = 180
+            else: 
+                self.field_tiles[n]["tile"] = self.sprite_dict["goal_mid"]
+                self.field_tiles[n]["angle"] = 0
+                self.field_tiles[n + int(((self.width / 64) - 1) * (self.height / 64))]["tile"] = self.sprite_dict["goal_mid"]
+                self.field_tiles[n + int(((self.width / 64) - 1) * (self.height / 64))]["angle"] = 180
+                
     def update(self):
         for piece in self.field_tiles:
             self.display.blit(pygame.transform.rotate(piece["tile"], piece["angle"]), piece["coord"])
