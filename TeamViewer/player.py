@@ -4,7 +4,7 @@ import numpy as np
 from utils import *
 
 class Player():
-    def __init__(self, id, pos, direction, speed, sprite, display):
+    def __init__(self, id, pos, direction, speed, sprite, display, def_pos = (0,0)):
         self.id = id
         self.sprite = sprite
         self.speed = speed
@@ -16,6 +16,7 @@ class Player():
         self.dir_head = 0 #'head' position relative to self.dir_body
         self.target = np.array([pos[0], pos[1]])
         self.position = np.array([pos[0], pos[1]])
+        self.defend_pos = np.array([def_pos[0], def_pos[1]])
         self.display = display
         self.fov = 56.3 #HFOV of the NAO robot Camera (67.4°DFOV)
         self.ball_pos = None
@@ -59,7 +60,7 @@ class Player():
         ball_dir = np.rad2deg(np.arctan2(ball_dir[0], ball_dir[1]))
         if np.isclose(ball_dir, (self.dir_body + self.dir_head), atol=self.fov):
             self.ball_pos = ball_pos
-            self.debug_print("can see the ball")
+            self.debug_print("can see the ball at {}".format(self.ball_pos))
             return True
         else:
             self.ball_pos = None
