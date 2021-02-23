@@ -1,7 +1,7 @@
 import pygame
 import numpy as np
-from utils import *
-from ball import Ball
+from .utils import *
+from .ball import Ball
 
 class Player():
     def __init__(self, id, pos, direction, speed, sprite, display, def_pos = (0,0)):

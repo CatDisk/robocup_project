@@ -1,7 +1,7 @@
-from State import State
-from StateMachine import StateMachine
-from Action import Action
-from SearchForBall import SearchForBall
+from .State import State
+from .StateMachine import StateMachine
+from .Action import Action
+from .SearchForBall import SearchForBall
 
 class StrikerAction(Action):
 

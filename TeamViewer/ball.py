@@ -1,6 +1,6 @@
 import pygame
 import numpy as np
-from utils import *
+from .utils import *
 
 class Ball():
     def __init__(self, pos, display):
@@ -10,7 +10,7 @@ class Ball():
         self.resistance = 0.01  #rolling resistance
         self.speed = 2          #'force' of the kick
         self.dir = 0
-        self.sprite = pygame.image.load("./assets/ball.png")
+        self.sprite = pygame.image.load("./TeamViewer/assets/ball.png")
 
     def kick(self, dir):
         self.dir = dir

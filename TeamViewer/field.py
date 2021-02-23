@@ -5,12 +5,12 @@ class Field():
         self.display = display
         self.width, self.height = self.display.get_size()
         self.sprite_dict = {
-            "corner": pygame.image.load("./assets/corner.png"),
-            "border": pygame.image.load("./assets/border.png"),
-            "center": pygame.image.load("./assets/center.png"),
-            "goal_top": pygame.image.load("./assets/goal_top_border.png"),
-            "goal_mid": pygame.image.load("./assets/goal_mid_border.png"),
-            "goal_bot": pygame.image.load("./assets/goal_bottom_border.png"),
+            "corner": pygame.image.load(  "./TeamViewer/assets/corner.png"),
+            "border": pygame.image.load(  "./TeamViewer/assets/border.png"),
+            "center": pygame.image.load(  "./TeamViewer/assets/center.png"),
+            "goal_top": pygame.image.load("./TeamViewer/assets/goal_top_border.png"),
+            "goal_mid": pygame.image.load("./TeamViewer/assets/goal_mid_border.png"),
+            "goal_bot": pygame.image.load("./TeamViewer/assets/goal_bottom_border.png"),
         }
         self.goal_size_tiles = 4 #has to be even, smallest size 2
         self.field_tiles = []

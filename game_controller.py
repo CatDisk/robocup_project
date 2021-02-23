@@ -1,5 +1,5 @@
 import json
-from message import Message
+from TeamViewer.message import Message
 
 class GameController():
     def __init__(self, game_inbox):
@@ -119,7 +119,7 @@ class GameController():
                     print("Something went wrong!")
             else:
                 print("Not a valid input. enter \'help\' for all commands")
-        elif inpt[0] == "move ball":
+        elif inpt[0] == "kick" and inpt[1] == "ball":
             if len(inpt) == 3:
                 try:
                     deg = float(inpt[2])

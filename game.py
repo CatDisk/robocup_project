@@ -4,12 +4,12 @@ from pygame.locals import *
 import json
 import threading
 import numpy as np
-from utils import *
 
-from field import Field
-from player import Player
-from ball import Ball
-from message import Message
+from TeamViewer.utils import *
+from TeamViewer.field import Field
+from TeamViewer.player import Player
+from TeamViewer.ball import Ball
+from TeamViewer.message import Message
 from game_controller import GameController
 
 HEIGHT = 64 * 10 #has to be even number of tiles
@@ -29,8 +29,8 @@ class Game():
         self.field = Field(self.display)
         self.field.update()
         self.player_spites = {
-            "red": pygame.image.load("./assets/player_red.png"),
-            "blue": pygame.image.load("./assets/player_blue.png"),
+            "red": pygame.image.load( "./TeamViewer/assets/player_red.png"),
+            "blue": pygame.image.load("./TeamViewer/assets/player_blue.png"),
         }
         self.ball = Ball((WIDTH / 2, HEIGHT / 2), self.display)
         self.inbox = []

@@ -1,6 +1,6 @@
-from State import State
-from StateMachine import StateMachine
-from Action import Action
+from .State import State
+from .StateMachine import StateMachine
+from .Action import Action
 
 
 class LookingAction(Action):
