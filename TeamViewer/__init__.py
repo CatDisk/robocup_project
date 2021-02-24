@@ -3,3 +3,4 @@ from . import field
 from . import message
 from . import player
 from . import utils
+from . import clock

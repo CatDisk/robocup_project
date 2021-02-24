@@ -7,7 +7,7 @@ class Ball():
         self.pos = np.array([pos[0], pos[1]])
         self.current_speed = np.array([0, 0])
         self.display = display
-        self.resistance = 0.01  #rolling resistance
+        self.resistance = 0 #0.01  #rolling resistance
         self.speed = 2          #'force' of the kick
         self.dir = 0
         self.sprite = pygame.image.load("./TeamViewer/assets/ball.png")
@@ -24,9 +24,9 @@ class Ball():
         else:
             self.current_speed[0] = -self.current_speed[0]
         bounce_vec = normalize(self.current_speed)
-        self.debug_print(self.dir)
+        #self.debug_print(self.dir)
         self.dir = rad2deg(np.arctan2(bounce_vec[0], bounce_vec[1]))
-        self.debug_print(self.dir)
+        #self.debug_print(self.dir)
 
     def bump(self, dir):
         self.dir = dir

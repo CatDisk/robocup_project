@@ -3,6 +3,7 @@ from pygame import display
 from pygame.locals import *
 import json
 import threading
+import queue
 import numpy as np
 
 from TeamViewer.utils import *
@@ -10,6 +11,7 @@ from TeamViewer.field import Field
 from TeamViewer.player import Player
 from TeamViewer.ball import Ball
 from TeamViewer.message import Message
+from TeamViewer.clock import Clock
 from game_controller import GameController
 
 HEIGHT = 64 * 10 #has to be even number of tiles
@@ -19,32 +21,47 @@ FPS = 60
 class Game():
     def __init__(self) -> None:
         pygame.init()
+        pygame.font.init()
+        self.font = pygame.font.SysFont('Consolas', 30)
         self.FramePerSec = pygame.time.Clock()
+        self.game_speed = 1
         pygame.display.set_caption("2D Robocup")
         self.display = pygame.display.set_mode((WIDTH, HEIGHT))
         self.player_speed = 1
         self.running = True
         self.players = []
-        self.starting_pos = []
+        self.player_metadata = []
         self.field = Field(self.display)
         self.field.update()
         self.player_spites = {
             "red": pygame.image.load( "./TeamViewer/assets/player_red.png"),
             "blue": pygame.image.load("./TeamViewer/assets/player_blue.png"),
         }
+        self.key_map = {
+            49: 1,
+            50: 2,
+            51: 3,
+        }
         self.ball = Ball((WIDTH / 2, HEIGHT / 2), self.display)
-        self.inbox = []
+        self.clock = Clock(FPS)
+        self.inbox = queue.Queue()
+        self.message_event = threading.Event()
 
-    def add_player(self,pos, dir, team = "red"):
+    def add_player(self,pos, dir, team, role):
         #player id corresponds to index in players list
         id = len(self.players)
         self.players.append(Player(id, pos, dir, self.player_speed, self.player_spites[team], self.display))
-        self.starting_pos.append((np.array([pos[0], pos[1]]), dir))
+        self.player_metadata.append({
+            "reset position": (np.array([pos[0], pos[1]]), dir),
+            "role": role,
+            "team": team
+        })
+
 
     def reset_all(self):
-        iter_starting_pos = iter(self.starting_pos)
+        iter_starting_pos = iter(self.player_metadata)
         for player in self.players:
-            player_pos = next(iter_starting_pos)
+            player_pos = next(iter_starting_pos)["reset position"]
             np.copyto(player.position, player_pos[0])
             player.dir_body = player_pos[1]
             player.current_speed *= 0
@@ -85,11 +102,22 @@ class Game():
             self.ball.bounce(np.array([0, 1]))
         elif self.ball.pos[1] > HEIGHT - 10:
             self.ball.bounce(np.array([0, -1]))
+    
+    def game_speed_text(self):
+        out = "{}x ".format(self.game_speed)
+        for _ in range(self.game_speed):
+            out = out + ">"
+        return out
+
+    def display_game_info(self):
+        text = "Time: {} Game Speed: {}".format(self.clock.time, self.game_speed_text())
+        surf = self.font.render(text, False, (255, 255, 255))
+        self.display.blit(surf, (40, 40))
 
     def msg_handler(self, mode='in', body = None):
         if mode == 'in':
-            while len(self.inbox) > 0:
-                msg = self.inbox.pop()
+            while not self.inbox.empty():
+                msg = self.inbox.get()
                 if msg.msg_type == "order":
                     payload = json.loads(msg.payload)
                     if payload["action"] == "move":
@@ -114,26 +142,34 @@ class Game():
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    self.message_event.set()
                     if controller != None:
-                        controller.running = False
+                        controller.inbox.put(Message("quit", None))
                         controller_thread.join()
                     self.running = False
+                elif event.type == pygame.KEYUP:
+                    try:
+                        self.game_speed = self.key_map[event.key]
+                    except:
+                        print("undefined key")
             self.msg_handler()
             self.check_collisions()
             self.field.update()
             self.ball.update()
+            self.display_game_info()
             for entity in self.players:
                 entity.update()
 
             pygame.display.flip()
-            self.FramePerSec.tick(FPS)
+            self.clock.tick()
+            self.FramePerSec.tick(FPS * self.game_speed)
 
 if __name__ == "__main__":
     game = Game()
-    controller = GameController(game.inbox)
-    game.add_player((WIDTH / 2 - 50, HEIGHT / 2), 90, "red")
-    print((WIDTH / 2 + 50, HEIGHT / 2))
-    game.add_player((100, 160), 180, "blue")
-    controller_thread = threading.Thread(target = controller.run)
+    game.add_player((WIDTH / 2 - 50, HEIGHT / 2), 90, "red", "striker")
+    game.add_player((100, 160), 180, "blue", "striker")
+    controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
+    controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))
     controller_thread.start()
+    game.ball.kick(45)
     game.start()

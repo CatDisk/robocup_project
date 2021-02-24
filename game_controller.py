@@ -1,11 +1,30 @@
 import json
+import queue
 from TeamViewer.message import Message
+from StateMachine.DefenderStateMachine import Defender
+from StateMachine.KeeperStateMachine import Keeper
+from StateMachine.StrikerStateMachine import Striker
+from StateMachine.Action import Action
 
 class GameController():
-    def __init__(self, game_inbox):
+    def __init__(self, game_inbox, metadata):
         self.game_inbox = game_inbox
-        self.inbox = []
+        self.inbox = queue.Queue()
+        self.statemachines = []
+        self.metadata = metadata
         self.running = True
+        self.build_statemachines()
+
+    def build_statemachines(self):
+        for player in self.metadata:
+            if player[0] == "striker":
+                self.statemachines.append(Striker())
+            elif player[0] == "keeper":
+                self.statemachines.append(Keeper())
+            elif player[0] == "defender":
+                self.statemachines.append(Defender())
+            else:
+                raise TypeError("Type \'{}\' is not defined".format(player[0]))
 
     def move_player(self, player_id, pos, dir):
         order = {
@@ -51,28 +70,28 @@ class GameController():
         message: Message
         if mode == 'out':
             message = Message(msg_type, payload)
-            self.game_inbox.append(message)
-        else:
-            while len(self.inbox) > 0:
-                msg = self.inbox.pop()
-                if msg.msg_type == "data":
-                    payload = json.loads(msg.payload)
-                    if payload["data"] == "found ball":
-                        pass
-                    elif payload["data"] == "collision":
-                        pass
-                    elif payload["data"] == "lost ball":
-                        pass
-                    elif payload["data"] == "facing goal":
-                        pass
-                    elif payload["data"] == "ready to shoot":
-                        pass
-                    elif payload["data"] == "too far from ball":
-                        pass
-                    elif payload["data"] == "can't find ball":
-                        pass
-                    elif payload["data"] == "goal":
-                        pass
+            self.game_inbox.put(message)
+        #else:
+        #    while len(self.inbox) > 0:
+        #        msg = self.inbox.pop()
+        #        if msg.msg_type == "data":
+        #            payload = json.loads(msg.payload)
+        #            if payload["data"] == "found ball":
+        #                pass
+        #            elif payload["data"] == "collision":
+        #                pass
+        #            elif payload["data"] == "lost ball":
+        #                pass
+        #            elif payload["data"] == "facing goal":
+        #                pass
+        #            elif payload["data"] == "ready to shoot":
+        #                pass
+        #            elif payload["data"] == "too far from ball":
+        #                pass
+        #            elif payload["data"] == "can't find ball":
+        #                pass
+        #            elif payload["data"] == "goal":
+        #                pass
         return message
 
     def input_handler(self):
@@ -138,16 +157,28 @@ class GameController():
             else:
                 print("Not a valid input. enter \'help\' for all commands")
         elif inpt[0] == "reset":
-           self.game_inbox.append(Message("reset", None))
+           self.game_inbox.put(Message("reset", None))
         elif inpt[0] == "quit":
             self.running = False
-            self.game_inbox.append(Message("quit", None))
+            self.game_inbox.put(Message("quit", None))
         else:
             print("Not a valid input. enter \'help\' for all commands")
 
-    def run(self):
+    #def run(self):
+    #    while self.running:
+    #        self.input_handler()
+    #        for machine in self.statemachines:
+    #            machine.run(Action("ready to shoot"))
+    def run(self, event):
         while self.running:
-            self.input_handler()
+            #self.input_handler()
+            event.wait()
+            if not self.inbox.empty():
+                message = self.inbox.get()
+                if message.msg_type == "quit":        
+                    self.running = False
+                    print("----GameController Stopped----")
+                
 
 if __name__ == '__main__':
     print("Start from game.py!")
