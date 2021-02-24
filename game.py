@@ -22,7 +22,7 @@ class Game():
     def __init__(self) -> None:
         pygame.init()
         pygame.font.init()
-        self.font = pygame.font.SysFont('Consolas', 30)
+        self.font = pygame.font.SysFont('Consolas', 23)
         self.FramePerSec = pygame.time.Clock()
         self.game_speed = 1
         pygame.display.set_caption("2D Robocup")
@@ -31,6 +31,7 @@ class Game():
         self.running = True
         self.players = []
         self.player_metadata = []
+        self.score = (0, 0)
         self.field = Field(self.display)
         self.field.update()
         self.player_spites = {
@@ -41,6 +42,7 @@ class Game():
             49: 1,
             50: 2,
             51: 3,
+            52: 10
         }
         self.ball = Ball((WIDTH / 2, HEIGHT / 2), self.display)
         self.clock = Clock(FPS)
@@ -110,9 +112,13 @@ class Game():
         return out
 
     def display_game_info(self):
-        text = "Time: {} Game Speed: {}".format(self.clock.time, self.game_speed_text())
-        surf = self.font.render(text, False, (255, 255, 255))
-        self.display.blit(surf, (40, 40))
+        texts = []
+        texts.append(" Time: {}".format(self.clock.time))
+        texts.append("Speed: {}".format(self.game_speed_text()))
+        texts.append("Score: {}-{}".format(self.score[0], self.score[1]))
+        for index, text in enumerate(texts):
+            surf = self.font.render(text, False, (255, 255, 255))
+            self.display.blit(surf, (40, 40 + int(surf.get_height()) * index))
 
     def msg_handler(self, mode='in', body = None):
         if mode == 'in':
