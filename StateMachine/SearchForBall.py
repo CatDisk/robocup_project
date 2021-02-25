@@ -10,31 +10,97 @@ class LookingAction(Action):
 
 # init actions
 LookingAction.FoundBall = LookingAction("found ball")
-LookingAction.CantFindBallInPos = LookingAction("can't find the ball in current position")
+LookingAction.CantFindBall = LookingAction("can't find the ball")
 
 
 class LookForBall(State):
 
     def run(self):
-        # Todo turn head if we find the ball return True else return CantFindBallInPos
         State.name = "LookForBall"
         print("looking")
-        return True
+
     def next(self, input):
-        if input == LookingAction.CantFindBallInPos:
-            return SearchForBall.TurnForBall
+        if input == LookingAction.FoundBall:
+            return SearchForBall.FoundBall
+        if input == LookingAction.CantFindBall:
+            return SearchForBall.LookLeft
         return SearchForBall.LookForBall
+
+
+class LookLeft(State):
+
+    def run(self):
+        State.name = "LookLeft"
+        print("looking left")
+
+    def next(self, input):
+        if input == LookingAction.FoundBall:
+            return SearchForBall.FoundBall
+        if input == LookingAction.CantFindBall:
+            return SearchForBall.LookFarLeft
+        return SearchForBall.LookLeft
+
+
+class LookFarLeft(State):
+
+    def run(self):
+        State.name = "LookFarLeft"
+        print("looking far left")
+
+    def next(self, input):
+        if input == LookingAction.FoundBall:
+            return SearchForBall.FoundBall
+        if input == LookingAction.CantFindBall:
+            return SearchForBall.LookRight
+        return SearchForBall.LookFarLeft
+
+
+class LookRight(State):
+
+    def run(self):
+        State.name = "LookRight"
+        print("looking right")
+
+    def next(self, input):
+        if input == LookingAction.FoundBall:
+            return SearchForBall.FoundBall
+        if input == LookingAction.CantFindBall:
+            return SearchForBall.LookFarRight
+        return SearchForBall.Right
+
+
+class LookFarRight(State):
+
+    def run(self):
+        State.name = "LookFarRight"
+        print("looking far right")
+
+    def next(self, input):
+        if input == LookingAction.FoundBall:
+            return SearchForBall.FoundBall
+        if input == LookingAction.CantFindBall:
+            return SearchForBall.TurnForBall
+        return SearchForBall.LookFarRight
 
 
 class TurnForBall(State):
 
     def run(self):
-        # TODO turn the robot and return something(not True)
         State.name = "TurnForBall"
         print("turning")
-        return 0
+
     def next(self, input):
         return SearchForBall.LookForBall
+
+
+class FoundBall(State):
+
+    def run(self):
+        State.name = "FoundBall"
+        print("found ball")
+
+    def next(self, input):
+        return SearchForBall.FoundBall
 
 
 class SearchForBall(StateMachine):
@@ -45,4 +111,9 @@ class SearchForBall(StateMachine):
 
 # init states
 SearchForBall.LookForBall = LookForBall()
+SearchForBall.LookLeft = LookLeft()
+SearchForBall.LookFarLeft = LookFarLeft()
+SearchForBall.LookRight = LookRight()
+SearchForBall.LookFarRight = LookFarRight()
 SearchForBall.TurnForBall = TurnForBall()
+SearchForBall.FoundBall = FoundBall()
