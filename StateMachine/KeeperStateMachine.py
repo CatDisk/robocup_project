@@ -1,7 +1,7 @@
 from .State import State
 from .StateMachine import StateMachine
 from .Action import Action
-from .SearchForBall import SearchForBall
+from .SearchForBall import *
 
 class KeeperAction(Action):
 
@@ -63,14 +63,17 @@ class GoRight(State):
 class SearchBall(State):
 
     def run(self):
-        State.name = "SearchBall"
-        print("searching")
+        if Keeper.SearchForBall is None:
+            Keeper.SearchForBall = SearchForBall()
+        State.name = Keeper.SearchForBall.currentState.name
 
     def next(self, input):
-        if input == KeeperAction.FoundBall:
+        if input == LookingAction.FoundBall:
+            Keeper.SearchForBall = None
             return Keeper.StayPut
+        if Keeper.SearchForBall is not None:
+            Keeper.SearchForBall.run(input)
         return Keeper.SearchBall
-
 
 class GoToGoal(State):
 
@@ -102,6 +105,7 @@ class Keeper(StateMachine):
 
 
 # Static variable initialization:
+Keeper.SearchForBall = None
 Keeper.StayPut = StayPut()
 Keeper.GoLeft = GoLeft()
 Keeper.GoRight = GoRight()

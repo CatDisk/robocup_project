@@ -1,10 +1,10 @@
 from .State import State
 from .StateMachine import StateMachine
 from .Action import Action
-from .SearchForBall import SearchForBall
+from .SearchForBall import *
+
 
 class StrikerAction(Action):
-
     name = "StrikerAction"
 
 
@@ -20,7 +20,7 @@ StrikerAction.CloseToBall = Action("close to ball")
 class TurnForOpponentGoal(State):
 
     def run(self):
-        #turn the robot to opponents goal
+        # turn the robot to opponents goal
         State.name = "TurnForOpponentGoal"
         print("turning")
 
@@ -37,7 +37,7 @@ class TurnForOpponentGoal(State):
 class Shoot(State):
 
     def run(self):
-        #shoot the ball
+        # shoot the ball
         State.name = "Shoot"
         print("shooting")
 
@@ -60,26 +60,12 @@ class Dribble(State):
         return Striker.GoToBall
 
 
-class SearchBall(State):
-
-    def run(self):
-        State.name = "SearchBall"
-        print("searching")
-
-
-    def next(self, input):
-        if input == StrikerAction.FoundBall:
-            return Striker.GoToBall
-        return Striker.SearchBall
-
-
 class GoToBall(State):
 
     def run(self):
         # go to the ball
         State.name = "GoToBall"
         print("going to the Ball")
-
 
     def next(self, input):
         if input == StrikerAction.LostBall:
@@ -89,13 +75,31 @@ class GoToBall(State):
         return Striker.GoToBall
 
 
+class SearchBall(State):
+
+    def run(self):
+        if Striker.SearchForBall is None:
+            Striker.SearchForBall = SearchForBall()
+        State.name = Striker.SearchForBall.currentState.name
+
+    def next(self, input):
+        if input == LookingAction.FoundBall:
+            Striker.SearchForBall = None
+            return Striker.GoToBall
+        if Striker.SearchForBall is not None:
+            Striker.SearchForBall.run(input)
+        return Striker.SearchBall
+
+
 class Striker(StateMachine):
     def __init__(self):
         # Initial state
+
         StateMachine.__init__(self, Striker.Dribble)
 
 
 # Static variable initialization:
+Striker.SearchForBall = None
 Striker.TurnForOpponentGoal = TurnForOpponentGoal()
 Striker.Shoot = Shoot()
 Striker.Dribble = Dribble()
@@ -104,6 +108,7 @@ Striker.GoToBall = GoToBall()
 
 if __name__ == '__main__':
     s = Striker()
-    print(s)
-    s.run()
-    print(s)
+    s.run("ey")
+    s.run(StrikerAction.LostBall)
+    s.run(Action("cant find ball"))
+    s.run(Action("found ball"))

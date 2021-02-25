@@ -1,7 +1,7 @@
 from .State import State
 from .StateMachine import StateMachine
 from .Action import Action
-from .SearchForBall import SearchForBall
+from .SearchForBall import *
 
 class DefenderAction(Action):
 
@@ -69,12 +69,16 @@ class GoToDefendPosition(State):
 class SearchBall(State):
 
     def run(self):
-        State.name = "SearchBall"
-        print("searching")
+        if Defender.SearchForBall is None:
+            Defender.SearchForBall = SearchForBall()
+        State.name = Defender.SearchForBall.currentState.name
 
     def next(self, input):
-        if input == DefenderAction.FoundBall:
+        if input == LookingAction.FoundBall:
+            Defender.SearchForBall = None
             return Defender.StayPut
+        if Defender.SearchForBall is not None:
+            Defender.SearchForBall.run(input)
         return Defender.SearchBall
 
 
@@ -97,9 +101,9 @@ class GoToBall(State):
 class Pass(State):
 
     def run(self):
-        # pass to striker (create a state machine)
+        # pass to striker
         State.name = "Pass"
-        print("Passing to nearest striker")
+        print("Passing to nearest Defender")
         return True
 
     def next(self, input):
@@ -113,6 +117,7 @@ class Defender(StateMachine):
 
 
 # Static variable initialization:
+Defender.SearchForBall = None
 Defender.StayPut = StayPut()
 Defender.GoToAttackPosition = GoToAttackPosition()
 Defender.GoToDefendPosition = GoToDefendPosition()
