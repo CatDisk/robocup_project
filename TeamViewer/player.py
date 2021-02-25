@@ -4,7 +4,7 @@ from .utils import *
 from .ball import Ball
 
 class Player():
-    def __init__(self, id, pos, direction, speed, sprite, display, def_pos = (0,0)):
+    def __init__(self, id, pos, direction, speed, sprite, display, def_pos = (0,0), atk_pos = (0, 0)):
         self.id = id
         self.sprite = sprite
         self.speed = speed
@@ -16,10 +16,28 @@ class Player():
         self.dir_head = 0 #'head' position relative to self.dir_body
         self.target = np.array([pos[0], pos[1]])
         self.position = np.array([pos[0], pos[1]])
-        self.defend_pos = np.array([def_pos[0], def_pos[1]])
+        self.defend_pos = def_pos
+        self.attack_pos = atk_pos
         self.display = display
         self.fov = 56.3 #HFOV of the NAO robot Camera (67.4°DFOV)
         self.ball_pos = None
+        self.actions = self.build_action_dict()
+
+    def build_action_dict(self):
+        actions = {
+            "TurnForOpponentGoal": lambda *a: print("turns"),
+            "Shoot": lambda *a: self.kick(a[0]),
+            "Dribble": lambda *a: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body)),self.position[1] + 30 * np.cos(deg2rad(self.dir_body))), "forward"),
+            "SearchBall": lambda *a: self.search_ball(a[0]),
+            "GoToBall": lambda *a: self.go_to(vec2tuple(self.ball_pos), "forward") if self.ball_pos != None else None,
+            "GoToAttackPosition": lambda *a: self.go_to(self.attack_pos, "forward"),
+            "GoToDefendPosition": lambda *a: self.go_to(self.defend_pos, "back"),
+            "Pass":1,
+            "StayPut": lambda *a: True,
+            "GoLeft": lambda *a: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body - 90)),self.position[0] + 30 * np.cos(deg2rad(self.dir_body - 90))), "left"),
+            "GoRight": lambda *a: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body + 90)),self.position[0] + 30 * np.cos(deg2rad(self.dir_body + 90))), "right"),
+        }
+        return actions
 
     def set_speed(self, speed):
         self.speed = speed
@@ -52,7 +70,7 @@ class Player():
         self.target_head_angle = target_dir
         if self.target_head_angle < self.dir_head:
             self.current_head_speed = -self.head_yaw_speed
-        else:
+        elif self.target_head_angle > self.dir_head:
             self.current_head_speed = self.head_yaw_speed
 
     def can_see_ball(self, ball_pos):
@@ -66,6 +84,17 @@ class Player():
             self.ball_pos = None
             self.debug_print("can't see the ball")
             return False
+
+    def search_ball(self, ball_pos):
+        look_directions = [0, -self.fov, self.fov]
+        for direction in look_directions:
+            self.move_head(direction)
+            found_ball = self.can_see_ball(ball_pos)
+            if found_ball:
+                self.move_head(0)
+                return True
+        self.move_head(0)
+        return False
 
     def kick(self, ball: Ball):
         dist = ball.pos - self.position

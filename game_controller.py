@@ -34,6 +34,13 @@ class GameController():
         }
         self.msg_handler("order", json.dumps(order), "out")
 
+    def dribble(self, player_id):
+        order = {
+            "target": player_id,
+            "action": "dribble",
+            "params": []
+        }
+
     def look(self, player_id, degrees):
         order = {
             "target": player_id,
@@ -93,6 +100,14 @@ class GameController():
         #            elif payload["data"] == "goal":
         #                pass
         return message
+
+    def send_order(self, action, player_id):
+        order = {
+            "target": player_id,
+            "action": action,
+            "params": []
+        }
+        self.msg_handler("order", json.dumps(order), "out")
 
     def input_handler(self):
         inpt = input("\nEnter a command: ")
@@ -171,13 +186,15 @@ class GameController():
     #            machine.run(Action("ready to shoot"))
     def run(self, event):
         while self.running:
-            #self.input_handler()
+            for index, machine in enumerate(self.statemachines):
+                self.send_order(str(machine), index)
             event.wait()
             if not self.inbox.empty():
                 message = self.inbox.get()
                 if message.msg_type == "quit":        
                     self.running = False
                     print("----GameController Stopped----")
+            event.clear()
                 
 
 if __name__ == '__main__':

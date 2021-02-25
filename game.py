@@ -120,23 +120,39 @@ class Game():
             surf = self.font.render(text, False, (255, 255, 255))
             self.display.blit(surf, (40, 40 + int(surf.get_height()) * index))
 
+    # deprecated
+    #def msg_handler(self, mode='in', body = None):
+    #    if mode == 'in':
+    #        while not self.inbox.empty():
+    #            msg = self.inbox.get()
+    #            if msg.msg_type == "order":
+    #                payload = json.loads(msg.payload)
+    #                if payload["action"] == "move":
+    #                    self.players[payload["target"]].go_to(payload["params"][0], payload["params"][1])
+    #                elif payload["action"] == "look":
+    #                    self.players[payload["target"]].move_head(payload["params"][0])
+    #                elif payload["action"] == "kick":
+    #                    if payload["target"] == "ball":
+    #                        self.ball.kick(payload["params"][0])
+    #                    else:
+    #                        self.players[payload["target"]].kick(self.ball)
+    #                elif payload["action"] == "can see ball":
+    #                    self.players[payload["target"]].can_see_ball(self.ball.pos)
+    #            elif msg.msg_type == "quit":
+    #                self.running = False
+    #            elif msg.msg_type == "reset":
+    #                self.reset_all()
     def msg_handler(self, mode='in', body = None):
         if mode == 'in':
             while not self.inbox.empty():
                 msg = self.inbox.get()
                 if msg.msg_type == "order":
                     payload = json.loads(msg.payload)
-                    if payload["action"] == "move":
-                        self.players[payload["target"]].go_to(payload["params"][0], payload["params"][1])
-                    elif payload["action"] == "look":
-                        self.players[payload["target"]].move_head(payload["params"][0])
-                    elif payload["action"] == "kick":
-                        if payload["target"] == "ball":
-                            self.ball.kick(payload["params"][0])
-                        else:
-                            self.players[payload["target"]].kick(self.ball)
-                    elif payload["action"] == "can see ball":
-                        self.players[payload["target"]].can_see_ball(self.ball.pos)
+                    args = {
+                        "Shoot": self.ball,
+                        "SearchBall": self.ball.pos
+                    }
+                    self.players[payload["target"]].actions[payload["action"]](args.setdefault(payload["action"], None))
                 elif msg.msg_type == "quit":
                     self.running = False
                 elif msg.msg_type == "reset":
@@ -177,5 +193,4 @@ if __name__ == "__main__":
     controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
     controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))
     controller_thread.start()
-    game.ball.kick(45)
     game.start()
