@@ -4,7 +4,7 @@ from .utils import *
 from .ball import Ball
 
 class Player():
-    def __init__(self, id, pos, direction, speed, sprite, display, def_pos = (0,0), atk_pos = (0, 0)):
+    def __init__(self, id, pos, direction, speed, sprite, display, ball, def_pos = (0,0), atk_pos = (0, 0)):
         self.id = id
         self.sprite = sprite
         self.speed = speed
@@ -20,22 +20,29 @@ class Player():
         self.attack_pos = atk_pos
         self.display = display
         self.fov = 56.3 #HFOV of the NAO robot Camera (67.4°DFOV)
+        self.ball = ball
         self.ball_pos = None
+        self.searching = False
         self.actions = self.build_action_dict()
+        self.current_goal = ""
 
     def build_action_dict(self):
         actions = {
-            "TurnForOpponentGoal": lambda *a: print("turns"),
-            "Shoot": lambda *a: self.kick(a[0]),
-            "Dribble": lambda *a: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body)),self.position[1] + 30 * np.cos(deg2rad(self.dir_body))), "forward"),
-            "SearchBall": lambda *a: self.search_ball(a[0]),
-            "GoToBall": lambda *a: self.go_to(vec2tuple(self.ball_pos), "forward") if self.ball_pos != None else None,
-            "GoToAttackPosition": lambda *a: self.go_to(self.attack_pos, "forward"),
-            "GoToDefendPosition": lambda *a: self.go_to(self.defend_pos, "back"),
+            "TurnForOpponentGoal": lambda:self.go_to((self.position[0] + np.sin(deg2rad(90)),self.position[1] + np.cos(deg2rad(90))), "forward"),
+            "Shoot": lambda: self.kick(),
+            "Dribble": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body)),self.position[1] + 30 * np.cos(deg2rad(self.dir_body))), "forward"),
+            "SearchBall": lambda: self.can_see_ball(),
+            "LookLeft": lambda: self.look_direction("left"),
+            "LookFarLeft": lambda: self.look_direction("left"),
+            "LookRight": lambda: self.look_direction("right"),
+            "LookFarRight": lambda: self.look_direction("right"),
+            "GoToBall": lambda: self.go_to(self.calc_near_ball_pos(), "forward"),
+            "GoToAttackPosition": lambda: self.go_to(self.attack_pos, "forward"),
+            "GoToDefendPosition": lambda: self.go_to(self.defend_pos, "back"),
             "Pass":1,
-            "StayPut": lambda *a: True,
-            "GoLeft": lambda *a: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body - 90)),self.position[0] + 30 * np.cos(deg2rad(self.dir_body - 90))), "left"),
-            "GoRight": lambda *a: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body + 90)),self.position[0] + 30 * np.cos(deg2rad(self.dir_body + 90))), "right"),
+            "StayPut": lambda: True,
+            "GoLeft": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body - 90)),self.position[0] + 30 * np.cos(deg2rad(self.dir_body - 90))), "left"),
+            "GoRight": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body + 90)),self.position[0] + 30 * np.cos(deg2rad(self.dir_body + 90))), "right"),
         }
         return actions
 
@@ -45,11 +52,53 @@ class Player():
     def get_position(self):
         return vec2tuple(self.position)
 
+    def calc_near_ball_pos(self):
+        near_pos = np.zeros(2)
+        ball_dir = self.ball.pos - self.position
+        ball_dir = normalize(ball_dir)
+        angle_to_ball = rad2deg(np.arctan2(ball_dir[0], ball_dir[1]))
+        near_pos[0] = self.ball.pos[0] + 25 * np.sin(deg2rad(angle_to_ball + 180))
+        near_pos[1] = self.ball.pos[1] + 25 * np.cos(deg2rad(angle_to_ball + 180))
+        return near_pos
+
+    def finish_current_goal(self):
+        out = "no report"
+        dist = self.ball.pos - self.position
+        angle = rad2deg(np.arctan2(dist[0], dist[1]))
+        dist = np.linalg.norm(dist)
+        if self.current_goal == "TurnForOpponentsGoal":
+            if dist < 40 and np.isclose(angle, self.dir_body, atol=30) and self.position[1] > 1000:
+                out = "ready to shoot"
+            elif dist > 40 and np.isclose(angle, self.dir_body, atol=30):
+                out = "too far from ball"
+            elif self.dir_body == 0:
+                out = "facing opponents goal"
+        elif self.current_goal == "Dribble":
+            out = "done dribbling"
+        elif self.current_goal == "Shoot":
+            if not self.can_see_ball():
+                out = "lost ball"
+            elif dist > 40:
+                out = "too far from ball"
+        elif self.current_goal == "SearchBall":
+            if self.can_see_ball():
+                out = "found ball"
+                self.move_head(0, False)
+        elif self.current_goal == "GoToBall":
+            if not self.can_see_ball():
+                out = "lost ball"
+            elif dist < 40 and np.isclose(angle, self.dir_body, atol=30):
+                out = "close to ball"
+
+        return out
+
     def update(self):
         #update movement
+        report = "no report"
         if np.isclose(self.target[0], self.position[0], atol= 0.5) and np.isclose(self.target[1], self.position[1], atol= 0.5):
             self.current_speed[0] = 0
             self.current_speed[1] = 0
+            report = self.finish_current_goal()
         else:
             self.position = self.position + self.current_speed
         #update looking direction
@@ -57,10 +106,14 @@ class Player():
             self.dir_head += self.current_head_speed
         else:
             self.current_head_speed = 0
+            if self.searching and not np.isclose(self.dir_head, 0, atol=0.5):
+                report = self.finish_current_goal()
         sprite_offset = np.array([16, 22.5])
         self.display.blit(pygame.transform.rotate(self.sprite, (self.dir_body - 90 + self.dir_head)), vec2tuple(self.position - sprite_offset))
+        return report
 
-    def move_head(self, target_dir):
+    def move_head(self, target_dir, is_searching):
+        self.searching = is_searching
         if target_dir > 119.5:
             self.debug_print("Angle too great!")
             target_dir = 119.5
@@ -73,11 +126,11 @@ class Player():
         elif self.target_head_angle > self.dir_head:
             self.current_head_speed = self.head_yaw_speed
 
-    def can_see_ball(self, ball_pos):
-        ball_dir = normalize(ball_pos - self.position)
+    def can_see_ball(self):
+        ball_dir = normalize(self.ball.pos - self.position)
         ball_dir = np.rad2deg(np.arctan2(ball_dir[0], ball_dir[1]))
         if np.isclose(ball_dir, (self.dir_body + self.dir_head), atol=self.fov):
-            self.ball_pos = ball_pos
+            self.ball_pos = self.ball.pos
             self.debug_print("can see the ball at {}".format(self.ball_pos))
             return True
         else:
@@ -85,23 +138,19 @@ class Player():
             self.debug_print("can't see the ball")
             return False
 
-    def search_ball(self, ball_pos):
-        look_directions = [0, -self.fov, self.fov]
-        for direction in look_directions:
-            self.move_head(direction)
-            found_ball = self.can_see_ball(ball_pos)
-            if found_ball:
-                self.move_head(0)
-                return True
-        self.move_head(0)
-        return False
+    def look_direction(self, direction):
+        factor = -1 if direction == "right" else 1
+        starting_dir = self.dir_head
+        if not np.isclose(factor * self.fov, self.dir_head):
+            starting_dir = 0
+        self.move_head(factor * self.fov + starting_dir, True)
 
-    def kick(self, ball: Ball):
-        dist = ball.pos - self.position
+    def kick(self):
+        dist = self.ball.pos - self.position
         angle = rad2deg(np.arctan2(dist[0], dist[1]))
         dist = np.linalg.norm(dist)
         if dist < 40 and np.isclose(angle, self.dir_body, atol=30):
-            ball.kick(self.dir_body)
+            self.ball.kick(self.dir_body)
             self.debug_print("kick success")
             return True
         else:

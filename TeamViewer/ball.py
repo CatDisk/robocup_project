@@ -7,7 +7,7 @@ class Ball():
         self.pos = np.array([pos[0], pos[1]])
         self.current_speed = np.array([0, 0])
         self.display = display
-        self.resistance = 0 #0.01  #rolling resistance
+        self.resistance = 0.01  #rolling resistance
         self.speed = 2          #'force' of the kick
         self.dir = 0
         self.sprite = pygame.image.load("./TeamViewer/assets/ball.png")

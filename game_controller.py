@@ -185,13 +185,17 @@ class GameController():
     #        for machine in self.statemachines:
     #            machine.run(Action("ready to shoot"))
     def run(self, event):
+        for index, machine in enumerate(self.statemachines):
+            self.send_order(str(machine), index)
         while self.running:
-            for index, machine in enumerate(self.statemachines):
-                self.send_order(str(machine), index)
             event.wait()
             if not self.inbox.empty():
                 message = self.inbox.get()
-                if message.msg_type == "quit":        
+                if message.msg_type == "data":
+                    payload = json.loads(message.payload)
+                    self.statemachines[payload["target"]].run(Action(payload["report"]))
+                    self.send_order(str(self.statemachines[payload["target"]]), payload["target"])
+                elif message.msg_type == "quit":        
                     self.running = False
                     print("----GameController Stopped----")
             event.clear()

@@ -16,7 +16,7 @@ from game_controller import GameController
 
 HEIGHT = 64 * 10 #has to be even number of tiles
 WIDTH = 64 * 18
-FPS = 60
+FPS = 10
 
 class Game():
     def __init__(self) -> None:
@@ -47,12 +47,17 @@ class Game():
         self.ball = Ball((WIDTH / 2, HEIGHT / 2), self.display)
         self.clock = Clock(FPS)
         self.inbox = queue.Queue()
+        self.controller_inbox = queue.Queue()
         self.message_event = threading.Event()
+
+    def set_controller_inbox(self, inbox: queue.Queue):
+        self.controller_inbox = inbox
+        print("set controller inbox at {}".format(self.controller_inbox))
 
     def add_player(self,pos, dir, team, role):
         #player id corresponds to index in players list
         id = len(self.players)
-        self.players.append(Player(id, pos, dir, self.player_speed, self.player_spites[team], self.display))
+        self.players.append(Player(id, pos, dir, self.player_speed, self.player_spites[team], self.display, self.ball))
         self.player_metadata.append({
             "reset position": (np.array([pos[0], pos[1]]), dir),
             "role": role,
@@ -85,7 +90,7 @@ class Game():
 
             #player-ball collisions
             dist = np.linalg.norm(pos1 - pos_ball)
-            if dist < 30:
+            if dist < 20:
                 less_speed = np.linalg.norm(self.players[i].current_speed) > np.linalg.norm(self.ball.current_speed)
                 same_dir = np.isclose(self.players[i].dir_body, self.ball.dir, atol=45)
                 no_ball_speed = np.allclose(self.ball.current_speed, np.zeros(2))
@@ -148,15 +153,24 @@ class Game():
                 msg = self.inbox.get()
                 if msg.msg_type == "order":
                     payload = json.loads(msg.payload)
-                    args = {
-                        "Shoot": self.ball,
-                        "SearchBall": self.ball.pos
-                    }
-                    self.players[payload["target"]].actions[payload["action"]](args.setdefault(payload["action"], None))
+                    self.players[payload["target"]].current_goal = payload["action"]
+                    print("Player {} current goal: {}".format(payload["target"], payload["action"]))
+                    self.players[payload["target"]].actions[payload["action"]]()
                 elif msg.msg_type == "quit":
                     self.running = False
                 elif msg.msg_type == "reset":
                     self.reset_all()
+        elif mode == "out":
+            message = Message("data", body) 
+            self.controller_inbox.put(message)
+            self.message_event.set()
+
+    def send_data(self, player_id, report):
+        data = {
+            "target": player_id,
+            "report": report,
+        }
+        self.msg_handler("out", json.dumps(data))
 
     def start(self):
         pygame.display.flip()
@@ -179,8 +193,11 @@ class Game():
             self.field.update()
             self.ball.update()
             self.display_game_info()
-            for entity in self.players:
-                entity.update()
+            for index, entity in enumerate(self.players):
+                msg = entity.update()
+                if msg != "no report":
+                    print("Player {} reports: {}".format(index, msg))
+                    self.send_data(index, msg)
 
             pygame.display.flip()
             self.clock.tick()
@@ -188,9 +205,9 @@ class Game():
 
 if __name__ == "__main__":
     game = Game()
-    game.add_player((WIDTH / 2 - 50, HEIGHT / 2), 90, "red", "striker")
-    game.add_player((100, 160), 180, "blue", "striker")
+    game.add_player((200, HEIGHT / 2), 90, "red", "striker")
     controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
+    game.set_controller_inbox(controller.inbox)
     controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))
     controller_thread.start()
     game.start()

@@ -92,7 +92,7 @@ class GoToBall(State):
 class Striker(StateMachine):
     def __init__(self):
         # Initial state
-        StateMachine.__init__(self, Striker.Dribble)
+        StateMachine.__init__(self, Striker.GoToBall)
 
 
 # Static variable initialization:
