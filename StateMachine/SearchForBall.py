@@ -10,7 +10,7 @@ class LookingAction(Action):
 
 # init actions
 LookingAction.FoundBall = LookingAction("found ball")
-LookingAction.CantFindBall = LookingAction("can't find the ball")
+LookingAction.CantFindBall = LookingAction("cant find ball")
 
 
 class LookForBall(State):
