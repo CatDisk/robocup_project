@@ -85,7 +85,7 @@ class Player():
 
     def calc_opponent_goal_threshold(self, team):
         threshold = -1
-        offset_from_edge = int(self.display.get_width() * 1/6)
+        offset_from_edge = int(self.display.get_width() * 1/5)
         if team == "red":
             threshold = self.display.get_width() - offset_from_edge
         else:
@@ -122,16 +122,16 @@ class Player():
         angle = rad2deg(np.arctan2(dist[0], dist[1]))
         dist = np.linalg.norm(dist)
         if self.current_goal == "TurnForOpponentGoal":
-            out = "facing opponents goal"
-            #if (self.team == "red" and self.position[0] >= self.opponent_goal_threshold) or (self.team == "blue" and self.position[0] >= self.opponent_goal_threshold):
-            #    dist = self.ball.pos - self.position
-            #    angle = rad2deg(np.arctan2(dist[0], dist[1]))
-            #    dist = np.linalg.norm(dist)
-            #    if dist < 40:
-            #        out = "ready to shoot"
-            #    elif dist >= 40:
-            #        out = "too far from ball"
-            #else:
+            if (self.team == "red" and self.position[0] >= self.opponent_goal_threshold) or (self.team == "blue" and self.position[0] >= self.opponent_goal_threshold):
+                dist = self.ball.pos - self.position
+                angle = rad2deg(np.arctan2(dist[0], dist[1]))
+                dist = np.linalg.norm(dist)
+                if dist < 40:
+                    out = "ready to shoot"
+                elif dist >= 40:
+                    out = "too far from ball"
+            else:
+                out = "facing opponents goal"
         elif self.current_goal == "Dribble":
             out = "done dribbling"
         elif self.current_goal == "Shoot":

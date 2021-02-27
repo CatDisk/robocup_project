@@ -126,7 +126,7 @@ class Game():
             self.display.blit(surf, (40, 40 + int(surf.get_height()) * index))
 
     def draw_helper_lines(self):
-        factor = 1/6
+        factor = 1/5
         offset_from_edge = int(WIDTH * factor)
         #red goal area
         pygame.draw.line(self.display, (255, 0, 0), (offset_from_edge,0), (offset_from_edge,HEIGHT), 2)
