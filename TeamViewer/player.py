@@ -59,6 +59,9 @@ class Player():
         #body dir
         end_pos = (self.position[0] + 100 * np.sin(deg2rad(self.dir_body)), self.position[1] + 100 * np.cos(deg2rad(self.dir_body)))
         pygame.draw.line(self.display, (192, 0, 135), vec2tuple(self.position), end_pos)
+
+        #line to opponents goal
+        pygame.draw.line(self.display, (102, 0, 102), vec2tuple(self.position), vec2tuple(self.opponent_goal))
         
     def set_speed(self, speed):
         self.speed = speed
@@ -76,8 +79,9 @@ class Player():
         dir_goal_ball = np.arctan2(vec_goal_ball[0], vec_goal_ball[1])
         self.position[0] = self.ball.pos[0] + 30 * np.sin(dir_goal_ball)
         self.position[1] = self.ball.pos[1] + 30 * np.cos(dir_goal_ball)
-        self.dir_body = rad2deg(dir_goal_ball) + 180
-        self.go_to((self.position[0] + np.sin(deg2rad(self.dir_body)),self.position[1] + np.cos(deg2rad(self.dir_body))), "forward")
+        #self.dir_body = rad2deg(dir_goal_ball + np.pi)
+        self.dir_body = deg2rad(np.arctan2(self.position[0] - self.ball.pos[0], self.position[1] - self.ball.pos[1])) + 180
+        self.go_to((self.position[0] - 0.01,self.position[1]), "forward")
         
 
     def get_position(self):
@@ -175,7 +179,7 @@ class Player():
             report = self.finish_current_goal()
         sprite_offset = np.array([16, 22.5])
         self.draw_helper_lines()
-        self.display.blit(pygame.transform.rotate(self.sprite, (self.dir_body - 90 + self.dir_head)), vec2tuple(self.position - sprite_offset))
+        #self.display.blit(pygame.transform.rotate(self.sprite, (self.dir_body - 90 + self.dir_head)), vec2tuple(self.position - sprite_offset))
         return report
 
     def move_head(self, target_dir, is_searching):

@@ -38,6 +38,10 @@ class Ball():
         self.current_speed[1] = 1.55 * np.cos(deg2rad(dir))
         self.pos = self.pos + 2 * self.current_speed
 
+    def draw_helper_lines(self):
+        pygame.draw.line(self.display, (102, 0, 102), (self.pos[0] + 20, self.pos[1]), (self.pos[0] - 20, self.pos[1]))
+        pygame.draw.line(self.display, (102, 0, 102), (self.pos[0], self.pos[1] + 20), (self.pos[0], self.pos[1] - 20))
+
     def update(self):
         if not np.isclose(self.current_speed[0], 0, atol=0.001) or not np.isclose(self.current_speed[1], 0, atol=0.001):     
             self.current_speed[0] += self.resistance * np.sin(deg2rad(self.dir + 180))
@@ -45,8 +49,8 @@ class Ball():
             self.pos = self.pos + self.current_speed
         else:
             self.current_speed = np.zeros(2)
-
-        self.display.blit(self.sprite, (self.pos[0] - 8, self.pos[1] - 8))
+        #self.display.blit(self.sprite, (self.pos[0] - 8, self.pos[1] - 8))
+        self.draw_helper_lines()
 
     def debug_print(self, out):
         print("Ball: {}".format(out))
