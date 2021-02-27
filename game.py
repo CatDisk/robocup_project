@@ -31,7 +31,7 @@ class Game():
         self.running = True
         self.players = []
         self.player_metadata = []
-        self.score = (0, 0)
+        self.score = np.array([0, 0])
         self.field = Field(self.display)
         self.field.update()
         self.player_spites = {
@@ -44,7 +44,7 @@ class Game():
             51: 3,
             52: 10
         }
-        self.ball = Ball((WIDTH / 2, HEIGHT / 2 + 200), self.display)
+        self.ball = Ball((WIDTH / 2, HEIGHT / 2), self.display)
         self.clock = Clock(FPS)
         self.inbox = queue.Queue()
         self.controller_inbox = queue.Queue()
@@ -74,6 +74,19 @@ class Game():
             player.current_speed *= 0
         self.ball.pos = np.array([WIDTH / 2, HEIGHT / 2])
         self.ball.current_speed = np.array([0, 0])
+
+    def check_goal(self):
+        from_sides, from_center = self.field.goals_pos()
+        if self.ball.pos[0] < from_sides and np.isclose(self.ball.pos[1], HEIGHT/2, atol = from_center):
+            #goal for blue
+            self.score[1] += 1
+            return True
+        elif self.ball.pos[0] > WIDTH - from_sides and np.isclose(self.ball.pos[1], HEIGHT/2, atol = from_center):
+            #goal for red
+            self.score[0] += 1
+            return True
+        else:
+            return False
 
     def check_collisions(self):
         pos_ball = self.ball.pos
@@ -126,7 +139,7 @@ class Game():
             self.display.blit(surf, (40, 40 + int(surf.get_height()) * index))
 
     def draw_helper_lines(self):
-        factor = 1/5
+        factor = 1/4
         offset_from_edge = int(WIDTH * factor)
         #red goal area
         pygame.draw.line(self.display, (255, 0, 0), (offset_from_edge,0), (offset_from_edge,HEIGHT), 2)
@@ -207,14 +220,18 @@ class Game():
                 if msg != "no report":
                     print("Player {} reports: {}".format(index, msg))
                     self.send_data(index, msg)
-
+            if self.check_goal():
+                self.reset_all()
+                controller.inbox.put(Message("reset", None))
+                self.message_event.set()
             pygame.display.flip()
             self.clock.tick()
             self.FramePerSec.tick(FPS * self.game_speed)
 
 if __name__ == "__main__":
     game = Game()
-    game.add_player((200,200), -45, "red", "striker")
+    #game.add_player((WIDTH/2 +200,200), -45, "blue", "striker")
+    game.add_player((WIDTH/2 -200,200), 66, "red", "striker")
     controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
     game.set_controller_inbox(controller.inbox)
     controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))

@@ -49,7 +49,7 @@ class Ball():
             self.pos = self.pos + self.current_speed
         else:
             self.current_speed = np.zeros(2)
-        #self.display.blit(self.sprite, (self.pos[0] - 8, self.pos[1] - 8))
+        self.display.blit(self.sprite, (self.pos[0] - 8, self.pos[1] - 8))
         self.draw_helper_lines()
 
     def debug_print(self, out):

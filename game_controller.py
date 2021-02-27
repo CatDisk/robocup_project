@@ -16,6 +16,7 @@ class GameController():
         self.build_statemachines()
 
     def build_statemachines(self):
+        self.statemachines = []
         for player in self.metadata:
             if player[0] == "striker":
                 self.statemachines.append(Striker())
@@ -195,6 +196,10 @@ class GameController():
                     payload = json.loads(message.payload)
                     self.statemachines[payload["target"]].run(Action(payload["report"]))
                     self.send_order(str(self.statemachines[payload["target"]]), payload["target"])
+                elif message.msg_type == "reset":
+                    self.build_statemachines()
+                    for index, machine in enumerate(self.statemachines):
+                        self.send_order(str(machine), index)
                 elif message.msg_type == "quit":        
                     self.running = False
                     print("----GameController Stopped----")

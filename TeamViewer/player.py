@@ -1,4 +1,5 @@
 import pygame
+import random
 import numpy as np
 from .utils import *
 from .ball import Ball
@@ -34,7 +35,7 @@ class Player():
             "TurnForBall": lambda: self.turn_for_ball(180),
             "Shoot": lambda: self.kick(),
             "Dribble": lambda: self.go_to((self.position[0] + 40 * np.sin(deg2rad(self.dir_body)),self.position[1] + 40 * np.cos(deg2rad(self.dir_body))), "forward"),
-            "LookForBall": lambda: self.finish_current_goal(),
+            "LookForBall": lambda: self.can_see_ball(),
             "LookLeft": lambda: self.look_direction("left"),
             "LookFarLeft": lambda: self.look_direction("left"),
             "LookRight": lambda: self.look_direction("right"),
@@ -57,7 +58,7 @@ class Player():
         pygame.draw.line(self.display, (0, 0, 255), vec2tuple(self.position), end_pos_right)
 
         #body dir
-        end_pos = (self.position[0] + 100 * np.sin(deg2rad(self.dir_body)), self.position[1] + 100 * np.cos(deg2rad(self.dir_body)))
+        end_pos = (self.position[0] + 50 * np.sin(deg2rad(self.dir_body)), self.position[1] + 50 * np.cos(deg2rad(self.dir_body)))
         pygame.draw.line(self.display, (192, 0, 135), vec2tuple(self.position), end_pos)
 
         #line to opponents goal
@@ -74,6 +75,7 @@ class Player():
         self.finish_current_goal()
 
     def turn_for_goal(self):
+        self.opponent_goal = self.calc_opponent_goal_pos(self.team)
         vec_goal_ball = self.ball.pos - self.opponent_goal
         vec_goal_ball = normalize(vec_goal_ball)
         dir_goal_ball = np.arctan2(vec_goal_ball[0], vec_goal_ball[1])
@@ -89,7 +91,7 @@ class Player():
 
     def calc_opponent_goal_threshold(self, team):
         threshold = -1
-        offset_from_edge = int(self.display.get_width() * 1/5)
+        offset_from_edge = int(self.display.get_width() * 1/4)
         if team == "red":
             threshold = self.display.get_width() - offset_from_edge
         else:
@@ -97,10 +99,11 @@ class Player():
         return threshold
 
     def calc_opponent_goal_pos(self, team):
+        random_offset = random.randint(-64 * 2, 64 * 2)
         if team == "red":
-            return np.array([self.display.get_width(), self.display.get_height()/2])
+            return np.array([self.display.get_width(), self.display.get_height()/2 + random_offset])
         else:
-            return np.array([0, self.display.get_height()/2])
+            return np.array([0, self.display.get_height()/2 + random_offset])
 
 
     def calc_near_ball_pos(self):
@@ -126,7 +129,7 @@ class Player():
         angle = rad2deg(np.arctan2(dist[0], dist[1]))
         dist = np.linalg.norm(dist)
         if self.current_goal == "TurnForOpponentGoal":
-            if (self.team == "red" and self.position[0] >= self.opponent_goal_threshold) or (self.team == "blue" and self.position[0] >= self.opponent_goal_threshold):
+            if (self.team == "red" and self.position[0] >= self.opponent_goal_threshold) or (self.team == "blue" and self.position[0] <= self.opponent_goal_threshold):
                 dist = self.ball.pos - self.position
                 angle = rad2deg(np.arctan2(dist[0], dist[1]))
                 dist = np.linalg.norm(dist)
@@ -164,7 +167,7 @@ class Player():
     def update(self):
         #update movement
         report = "no report"
-        if self.current_goal == "TurnForOpponentGoal":
+        if self.current_goal == "TurnForOpponentGoal" or self.current_goal == "LookForBall":
             report = self.finish_current_goal()
         if np.isclose(self.target[0], self.position[0], atol= 0.5) and np.isclose(self.target[1], self.position[1], atol= 0.5):
             self.current_speed[0] = 0
@@ -181,7 +184,7 @@ class Player():
             report = self.finish_current_goal()
         sprite_offset = np.array([16, 22.5])
         self.draw_helper_lines()
-        #self.display.blit(pygame.transform.rotate(self.sprite, (self.dir_body - 90 + self.dir_head)), vec2tuple(self.position - sprite_offset))
+        self.display.blit(pygame.transform.rotate(self.sprite, (self.dir_body - 90 + self.dir_head)), vec2tuple(self.position - sprite_offset))
         return report
 
     def move_head(self, target_dir, is_searching):
@@ -217,11 +220,10 @@ class Player():
 
     def kick(self):
         dist = self.ball.pos - self.position
-        angle = rad2deg(np.arctan2(dist[0], dist[1]))
         dist = np.linalg.norm(dist)
-        if dist < 40 and np.isclose(angle, self.dir_body, atol=30):
-            self.ball.kick(self.dir_body)
+        if dist < 40:
             self.debug_print("kick success")
+            self.ball.kick(self.dir_body)
             return True
         else:
             self.debug_print("kick failure")

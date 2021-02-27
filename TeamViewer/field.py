@@ -17,7 +17,6 @@ class Field():
         self.__build_field__()
         self.__add_goals__()
 
-    
     def __build_field__ (self):
         tile = self.sprite_dict["corner"]
         for i in range(0, self.width, 64):
@@ -54,6 +53,11 @@ class Field():
                     "coord": (i, j),
                     "angle": angle,
                 })
+
+    def goals_pos(self):
+        offset_from_center = (self.goal_size_tiles / 2) * 64
+        offset_from_sides = 64
+        return (offset_from_sides, offset_from_center)
 
     def __add_goals__(self):
         start_index = int(((self.height / 64) / 2) - (self.goal_size_tiles / 2))
