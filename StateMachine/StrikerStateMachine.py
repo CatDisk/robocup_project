@@ -30,7 +30,7 @@ class TurnForOpponentGoal(State):
         if input == StrikerAction.TooFarFromBall:
             return Striker.GoToBall
         if input == StrikerAction.FacingOpponentsGoal:
-            return Striker.Dribble
+           return Striker.Dribble
         return Striker.TurnForOpponentGoal
 
 

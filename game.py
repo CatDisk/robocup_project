@@ -16,7 +16,7 @@ from game_controller import GameController
 
 HEIGHT = 64 * 10 #has to be even number of tiles
 WIDTH = 64 * 18
-FPS = 10
+FPS = 60
 
 class Game():
     def __init__(self) -> None:
@@ -125,6 +125,14 @@ class Game():
             surf = self.font.render(text, False, (255, 255, 255))
             self.display.blit(surf, (40, 40 + int(surf.get_height()) * index))
 
+    def draw_helper_lines(self):
+        factor = 1/6
+        offset_from_edge = int(WIDTH * factor)
+        #red goal area
+        pygame.draw.line(self.display, (255, 0, 0), (offset_from_edge,0), (offset_from_edge,HEIGHT), 2)
+        #blue goal area
+        pygame.draw.line(self.display, (0, 0, 255), (WIDTH - offset_from_edge,0), (WIDTH - offset_from_edge,HEIGHT), 2)
+
     # deprecated
     #def msg_handler(self, mode='in', body = None):
     #    if mode == 'in':
@@ -192,6 +200,7 @@ class Game():
             self.check_collisions()
             self.field.update()
             self.ball.update()
+            self.draw_helper_lines()
             self.display_game_info()
             for index, entity in enumerate(self.players):
                 msg = entity.update()
@@ -205,7 +214,7 @@ class Game():
 
 if __name__ == "__main__":
     game = Game()
-    game.add_player((100, HEIGHT / 2), 0, "red", "striker")
+    game.add_player((800,200), -45, "red", "striker")
     controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
     game.set_controller_inbox(controller.inbox)
     controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))

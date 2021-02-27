@@ -21,14 +21,16 @@ class Player():
         self.display = display
         self.fov = 56.3 #HFOV of the NAO robot Camera (67.4°DFOV)
         self.ball = ball
+        self.team = team
         self.searching = False
         self.actions = self.build_action_dict()
-        self.opponent_goal = self.set_opponent_goal(team)
+        self.opponent_goal_threshold = self.calc_opponent_goal_threshold(team)
+        self.opponent_goal = self.calc_opponent_goal_pos(team)
         self.current_goal = ""
 
     def build_action_dict(self):
         actions = {
-            "TurnForOpponentGoal": lambda:self.go_to((self.position[0] + np.sin(deg2rad(90)),self.position[1] + np.cos(deg2rad(90))), "forward"),
+            "TurnForOpponentGoal": lambda: self.turn_for_goal(),
             "TurnForBall": lambda: self.turn_for_ball(180),
             "Shoot": lambda: self.kick(),
             "Dribble": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body)),self.position[1] + 30 * np.cos(deg2rad(self.dir_body))), "forward"),
@@ -58,7 +60,6 @@ class Player():
         end_pos = (self.position[0] + 100 * np.sin(deg2rad(self.dir_body)), self.position[1] + 100 * np.cos(deg2rad(self.dir_body)))
         pygame.draw.line(self.display, (192, 0, 135), vec2tuple(self.position), end_pos)
         
-
     def set_speed(self, speed):
         self.speed = speed
 
@@ -69,23 +70,42 @@ class Player():
         self.can_see_ball()
         self.finish_current_goal()
 
+    def turn_for_goal(self):
+        vec_goal_ball = self.ball.pos - self.opponent_goal
+        vec_goal_ball = normalize(vec_goal_ball)
+        dir_goal_ball = np.arctan2(vec_goal_ball[0], vec_goal_ball[1])
+        self.position[0] = self.ball.pos[0] + 25 * np.sin(dir_goal_ball)
+        self.position[1] = self.ball.pos[1] + 25 * np.cos(dir_goal_ball)
+        self.dir_body = rad2deg(dir_goal_ball) + 180
+        self.go_to((self.position[0] + np.sin(deg2rad(self.dir_body)),self.position[1] + np.cos(deg2rad(self.dir_body))), "forward")
+        
+
     def get_position(self):
         return vec2tuple(self.position)
 
-    def set_opponent_goal(self, team):
+    def calc_opponent_goal_threshold(self, team):
+        threshold = -1
+        offset_from_edge = int(self.display.get_width() * 1/6)
         if team == "red":
-            return np.array([self.display.get_height()/2, self.display.get_width()])
+            threshold = self.display.get_width() - offset_from_edge
         else:
-            return np.array([self.display.get_height()/2, 1])
+            threshold = offset_from_edge
+        return threshold
+
+    def calc_opponent_goal_pos(self, team):
+        if team == "red":
+            return np.array([self.display.get_width(), self.display.get_height()/2])
+        else:
+            return np.array([0, self.display.get_height()/2])
 
 
     def calc_near_ball_pos(self):
         near_pos = np.zeros(2)
         ball_dir = self.ball.pos - self.position
         ball_dir = normalize(ball_dir)
-        angle_to_ball = rad2deg(np.arctan2(ball_dir[0], ball_dir[1]))
-        near_pos[0] = self.ball.pos[0] + 25 * np.sin(deg2rad(angle_to_ball + 180))
-        near_pos[1] = self.ball.pos[1] + 25 * np.cos(deg2rad(angle_to_ball + 180))
+        angle_to_ball = np.arctan2(ball_dir[0], ball_dir[1])
+        near_pos[0] = self.ball.pos[0] + 25 * np.sin(angle_to_ball + np.pi)
+        near_pos[1] = self.ball.pos[1] + 25 * np.cos(angle_to_ball + np.pi)
         return near_pos
 
     def turn_for_opponent_goal(self):
@@ -102,12 +122,16 @@ class Player():
         angle = rad2deg(np.arctan2(dist[0], dist[1]))
         dist = np.linalg.norm(dist)
         if self.current_goal == "TurnForOpponentGoal":
-            if dist < 40 and np.isclose(angle, self.dir_body, atol=30) and self.position[1] > 1000:
-                out = "ready to shoot"
-            elif dist > 40 and np.isclose(angle, self.dir_body, atol=30):
-                out = "too far from ball"
-            elif self.dir_body == 0:
-                out = "facing opponents goal"
+            out = "facing opponents goal"
+            #if (self.team == "red" and self.position[0] >= self.opponent_goal_threshold) or (self.team == "blue" and self.position[0] >= self.opponent_goal_threshold):
+            #    dist = self.ball.pos - self.position
+            #    angle = rad2deg(np.arctan2(dist[0], dist[1]))
+            #    dist = np.linalg.norm(dist)
+            #    if dist < 40:
+            #        out = "ready to shoot"
+            #    elif dist >= 40:
+            #        out = "too far from ball"
+            #else:
         elif self.current_goal == "Dribble":
             out = "done dribbling"
         elif self.current_goal == "Shoot":
