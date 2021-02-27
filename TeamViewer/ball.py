@@ -17,6 +17,10 @@ class Ball():
         self.current_speed[0] = self.speed * np.sin(deg2rad(dir))
         self.current_speed[1] = self.speed * np.cos(deg2rad(dir))
 
+    def set_pos(self, pos_x, pos_y):
+        self.pos = np.array([pos_x, pos_y])
+        print("ball has set pos!")
+
     def bounce(self, normal):
         self.pos = self.pos - 2 * self.current_speed
         if np.abs(normal[0]) < np.abs(normal[1]):

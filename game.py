@@ -16,7 +16,7 @@ from game_controller import GameController
 
 HEIGHT = 64 * 10 #has to be even number of tiles
 WIDTH = 64 * 18
-FPS = 60
+FPS = 10
 
 class Game():
     def __init__(self) -> None:
@@ -57,7 +57,7 @@ class Game():
     def add_player(self,pos, dir, team, role):
         #player id corresponds to index in players list
         id = len(self.players)
-        self.players.append(Player(id, pos, dir, self.player_speed, self.player_spites[team], self.display, self.ball))
+        self.players.append(Player(id, pos, dir, self.player_speed, team, self.player_spites[team], self.display, self.ball))
         self.player_metadata.append({
             "reset position": (np.array([pos[0], pos[1]]), dir),
             "role": role,
@@ -205,7 +205,7 @@ class Game():
 
 if __name__ == "__main__":
     game = Game()
-    game.add_player((200, HEIGHT / 2), 90, "red", "striker")
+    game.add_player((800, HEIGHT / 2), 0, "red", "striker")
     controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
     game.set_controller_inbox(controller.inbox)
     controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))

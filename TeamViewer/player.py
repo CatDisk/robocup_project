@@ -4,7 +4,7 @@ from .utils import *
 from .ball import Ball
 
 class Player():
-    def __init__(self, id, pos, direction, speed, sprite, display, ball, def_pos = (0,0), atk_pos = (0, 0)):
+    def __init__(self, id, pos, direction, speed, team, sprite, display, ball, def_pos = (0,0), atk_pos = (0, 0)):
         self.id = id
         self.sprite = sprite
         self.speed = speed
@@ -21,17 +21,18 @@ class Player():
         self.display = display
         self.fov = 56.3 #HFOV of the NAO robot Camera (67.4°DFOV)
         self.ball = ball
-        self.ball_pos = None
         self.searching = False
         self.actions = self.build_action_dict()
+        self.opponent_goal = self.set_opponent_goal(team)
         self.current_goal = ""
 
     def build_action_dict(self):
         actions = {
             "TurnForOpponentGoal": lambda:self.go_to((self.position[0] + np.sin(deg2rad(90)),self.position[1] + np.cos(deg2rad(90))), "forward"),
+            "TurnForBall": lambda: self.turn_for_ball(180),
             "Shoot": lambda: self.kick(),
             "Dribble": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body)),self.position[1] + 30 * np.cos(deg2rad(self.dir_body))), "forward"),
-            "SearchBall": lambda: self.can_see_ball(),
+            "LookForBall": lambda: self.finish_current_goal(),
             "LookLeft": lambda: self.look_direction("left"),
             "LookFarLeft": lambda: self.look_direction("left"),
             "LookRight": lambda: self.look_direction("right"),
@@ -45,12 +46,38 @@ class Player():
             "GoRight": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body + 90)),self.position[0] + 30 * np.cos(deg2rad(self.dir_body + 90))), "right"),
         }
         return actions
+    
+    def draw_helper_lines(self):
+        #fov
+        end_pos_left = (self.position[0] + 500 * np.sin(deg2rad(self.dir_head + self.dir_body - self.fov/2)), self.position[1] + 500 * np.cos(deg2rad(self.dir_head + self.dir_body - self.fov/2)))
+        end_pos_right = (self.position[0] + 500 * np.sin(deg2rad(self.dir_head + self.dir_body + self.fov/2)), self.position[1] + 500 * np.cos(deg2rad(self.dir_head + self.dir_body + self.fov/2)))
+        pygame.draw.line(self.display, (255, 0, 0), vec2tuple(self.position), end_pos_left)
+        pygame.draw.line(self.display, (0, 0, 255), vec2tuple(self.position), end_pos_right)
+
+        #body dir
+        end_pos = (self.position[0] + 100 * np.sin(deg2rad(self.dir_body)), self.position[1] + 100 * np.cos(deg2rad(self.dir_body)))
+        pygame.draw.line(self.display, (192, 0, 135), vec2tuple(self.position), end_pos)
+        
 
     def set_speed(self, speed):
         self.speed = speed
 
+    def turn_for_ball(self, amt):
+        self.dir_head = 0
+        self.current_head_speed = 0
+        self.dir_body += amt
+        self.can_see_ball()
+        self.finish_current_goal()
+
     def get_position(self):
         return vec2tuple(self.position)
+
+    def set_opponent_goal(self, team):
+        if team == "red":
+            return np.array([self.display.get_height()/2, self.display.get_width()])
+        else:
+            return np.array([self.display.get_height()/2, 1])
+
 
     def calc_near_ball_pos(self):
         near_pos = np.zeros(2)
@@ -60,6 +87,14 @@ class Player():
         near_pos[0] = self.ball.pos[0] + 25 * np.sin(deg2rad(angle_to_ball + 180))
         near_pos[1] = self.ball.pos[1] + 25 * np.cos(deg2rad(angle_to_ball + 180))
         return near_pos
+
+    def turn_for_opponent_goal(self):
+        ball_dist = 25
+        self.dir_body = rad2deg(np.arctan2(normalize(self.position - self.opponent_goal)))
+        self.dir_head = 0
+        self.ball.set_pos(self.position[0] + ball_dist * np.sin(deg2rad(self.dir_body)), self.position[1] + ball_dist * np.cos(deg2rad(self.dir_body)))
+        self.ball.update()
+        
 
     def finish_current_goal(self):
         out = "no report"
@@ -80,15 +115,19 @@ class Player():
                 out = "lost ball"
             elif dist > 40:
                 out = "too far from ball"
-        elif self.current_goal == "SearchBall":
+        elif self.current_goal[:4] == "Look" and self.current_head_speed == 0:
             if self.can_see_ball():
                 out = "found ball"
                 self.move_head(0, False)
+            else:
+                out = "cant find ball"
         elif self.current_goal == "GoToBall":
             if not self.can_see_ball():
                 out = "lost ball"
             elif dist < 40 and np.isclose(angle, self.dir_body, atol=30):
                 out = "close to ball"
+        elif self.current_goal == "TurnForBall":
+            out = "done turning"
 
         return out
 
@@ -106,9 +145,10 @@ class Player():
             self.dir_head += self.current_head_speed
         else:
             self.current_head_speed = 0
-            if self.searching and not np.isclose(self.dir_head, 0, atol=0.5):
-                report = self.finish_current_goal()
+        if self.searching and self.current_head_speed == 0:
+            report = self.finish_current_goal()
         sprite_offset = np.array([16, 22.5])
+        self.draw_helper_lines()
         self.display.blit(pygame.transform.rotate(self.sprite, (self.dir_body - 90 + self.dir_head)), vec2tuple(self.position - sprite_offset))
         return report
 
@@ -130,11 +170,9 @@ class Player():
         ball_dir = normalize(self.ball.pos - self.position)
         ball_dir = np.rad2deg(np.arctan2(ball_dir[0], ball_dir[1]))
         if np.isclose(ball_dir, (self.dir_body + self.dir_head), atol=self.fov):
-            self.ball_pos = self.ball.pos
-            self.debug_print("can see the ball at {}".format(self.ball_pos))
+            self.debug_print("can see the ball at {}".format(self.ball.pos))
             return True
         else:
-            self.ball_pos = None
             self.debug_print("can't see the ball")
             return False
 

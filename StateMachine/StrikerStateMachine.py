@@ -94,7 +94,7 @@ class SearchBall(State):
 class Striker(StateMachine):
     def __init__(self):
         # Initial state
-        StateMachine.__init__(self, Striker.GoToBall)
+        StateMachine.__init__(self, Striker.SearchBall)
 
 
 # Static variable initialization:
