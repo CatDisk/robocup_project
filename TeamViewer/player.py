@@ -101,7 +101,7 @@ class Player():
         dist = self.ball.pos - self.position
         angle = rad2deg(np.arctan2(dist[0], dist[1]))
         dist = np.linalg.norm(dist)
-        if self.current_goal == "TurnForOpponentsGoal":
+        if self.current_goal == "TurnForOpponentGoal":
             if dist < 40 and np.isclose(angle, self.dir_body, atol=30) and self.position[1] > 1000:
                 out = "ready to shoot"
             elif dist > 40 and np.isclose(angle, self.dir_body, atol=30):

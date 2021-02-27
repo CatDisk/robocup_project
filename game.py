@@ -205,7 +205,7 @@ class Game():
 
 if __name__ == "__main__":
     game = Game()
-    game.add_player((800, HEIGHT / 2), 0, "red", "striker")
+    game.add_player((100, HEIGHT / 2), 0, "red", "striker")
     controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
     game.set_controller_inbox(controller.inbox)
     controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))
