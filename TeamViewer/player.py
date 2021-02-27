@@ -79,9 +79,9 @@ class Player():
         dir_goal_ball = np.arctan2(vec_goal_ball[0], vec_goal_ball[1])
         self.position[0] = self.ball.pos[0] + 30 * np.sin(dir_goal_ball)
         self.position[1] = self.ball.pos[1] + 30 * np.cos(dir_goal_ball)
-        #self.dir_body = rad2deg(dir_goal_ball + np.pi)
-        self.dir_body = deg2rad(np.arctan2(self.position[0] - self.ball.pos[0], self.position[1] - self.ball.pos[1])) + 180
-        self.go_to((self.position[0] - 0.01,self.position[1]), "forward")
+        self.dir_body = rad2deg(dir_goal_ball + np.pi)
+        #self.dir_body = deg2rad(np.arctan2(self.position[0] - self.ball.pos[0], self.position[1] - self.ball.pos[1]))
+        #self.go_to((self.position[0] - 0.01,self.position[1]), "forward")
         
 
     def get_position(self):
@@ -164,6 +164,8 @@ class Player():
     def update(self):
         #update movement
         report = "no report"
+        if self.current_goal == "TurnForOpponentGoal":
+            report = self.finish_current_goal()
         if np.isclose(self.target[0], self.position[0], atol= 0.5) and np.isclose(self.target[1], self.position[1], atol= 0.5):
             self.current_speed[0] = 0
             self.current_speed[1] = 0
