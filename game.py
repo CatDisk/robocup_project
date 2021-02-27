@@ -16,7 +16,7 @@ from game_controller import GameController
 
 HEIGHT = 64 * 10 #has to be even number of tiles
 WIDTH = 64 * 18
-FPS = 60
+FPS = 30
 
 class Game():
     def __init__(self) -> None:

@@ -33,7 +33,7 @@ class Player():
             "TurnForOpponentGoal": lambda: self.turn_for_goal(),
             "TurnForBall": lambda: self.turn_for_ball(180),
             "Shoot": lambda: self.kick(),
-            "Dribble": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body)),self.position[1] + 30 * np.cos(deg2rad(self.dir_body))), "forward"),
+            "Dribble": lambda: self.go_to((self.position[0] + 40 * np.sin(deg2rad(self.dir_body)),self.position[1] + 40 * np.cos(deg2rad(self.dir_body))), "forward"),
             "LookForBall": lambda: self.finish_current_goal(),
             "LookLeft": lambda: self.look_direction("left"),
             "LookFarLeft": lambda: self.look_direction("left"),
@@ -74,8 +74,8 @@ class Player():
         vec_goal_ball = self.ball.pos - self.opponent_goal
         vec_goal_ball = normalize(vec_goal_ball)
         dir_goal_ball = np.arctan2(vec_goal_ball[0], vec_goal_ball[1])
-        self.position[0] = self.ball.pos[0] + 25 * np.sin(dir_goal_ball)
-        self.position[1] = self.ball.pos[1] + 25 * np.cos(dir_goal_ball)
+        self.position[0] = self.ball.pos[0] + 30 * np.sin(dir_goal_ball)
+        self.position[1] = self.ball.pos[1] + 30 * np.cos(dir_goal_ball)
         self.dir_body = rad2deg(dir_goal_ball) + 180
         self.go_to((self.position[0] + np.sin(deg2rad(self.dir_body)),self.position[1] + np.cos(deg2rad(self.dir_body))), "forward")
         
@@ -150,6 +150,8 @@ class Player():
                 out = "lost ball"
             elif dist < 40 and np.isclose(angle, self.dir_body, atol=30):
                 out = "close to ball"
+            else:
+                self.go_to(self.calc_near_ball_pos(), "forward")
         elif self.current_goal == "TurnForBall":
             out = "done turning"
 
