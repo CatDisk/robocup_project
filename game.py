@@ -5,6 +5,7 @@ import json
 import threading
 import queue
 import numpy as np
+import sys
 
 from TeamViewer.utils import *
 from TeamViewer.field import Field
@@ -230,16 +231,46 @@ class Game():
             self.clock.tick()
             self.FramePerSec.tick(FPS * self.game_speed)
 
+def print_help():
+    print("usage: game.py <showcase number>")
+    print("-----------------------------------------------")
+    print("1: Goalkeeper defends a striker's goal attempt")
+    print("2: Ball is out of line of sight of striker\n")
+
 if __name__ == "__main__":
-    game = Game()
-    #Blue Team
-    #game.add_player((WIDTH/2 +200,200), -90, "blue", "striker")
-    game.add_player((WIDTH - 40, HEIGHT /2), -90, "blue", "keeper")
-    #Red Team
-    game.add_player((WIDTH/2 -200,200), 90, "red", "striker")
-    #game.add_player((40 ,HEIGHT /2), 90, "red", "keeper")
-    controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
-    game.set_controller_inbox(controller.inbox)
-    controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))
-    controller_thread.start()
-    game.start()
+    if len(sys.argv) == 2:
+        if sys.argv[1] == '1':
+            game = Game()
+            #Blue Team
+            game.add_player((WIDTH - 40, HEIGHT /2), -90, "blue", "keeper")
+            #Red Team
+            game.add_player((WIDTH/2 -200,200), 90, "red", "striker")
+            controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
+            game.set_controller_inbox(controller.inbox)
+            controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))
+            controller_thread.start()
+            game.start()
+        elif sys.argv[1] == '2':
+            game = Game()
+            #Blue Team
+            game.add_player((WIDTH - 100, HEIGHT /2), 0, "blue", "striker")
+            #Red Team
+            controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
+            game.set_controller_inbox(controller.inbox)
+            controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))
+            controller_thread.start()
+            game.start()
+        elif sys.argv[1] == 'debug':
+            game = Game()
+            #Blue Team
+            game.add_player((WIDTH - 100, HEIGHT /2), 0, "blue", "striker")
+            #Red Team
+            controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
+            game.set_controller_inbox(controller.inbox)
+            controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))
+            controller_thread.start()
+            game.start()
+        else:
+            print_help()
+    else:
+        print_help()
