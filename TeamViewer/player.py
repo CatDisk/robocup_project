@@ -40,7 +40,7 @@ class Player():
             "LookFarLeft": lambda: self.look_direction("left"),
             "LookRight": lambda: self.look_direction("right"),
             "LookFarRight": lambda: self.look_direction("right"),
-            "GoToBall": lambda: self.go_to(self.calc_near_ball_pos(), "forward"),
+            "GoToBall": lambda: self.go_to_ball(),
             "GoToAttackPosition": lambda: self.go_to(self.attack_pos, "forward"),
             "GoToDefendPosition": lambda: self.go_to(self.defend_pos, "back"),
             "Pass":1,
@@ -74,6 +74,10 @@ class Player():
         self.dir_body += amt
         self.can_see_ball()
         self.finish_current_goal()
+
+    def go_to_ball(self):
+        self.move_head(0,False)
+        self.go_to(self.calc_near_ball_pos(), "forward")
 
     def turn_for_goal(self):
         self.opponent_goal = self.calc_opponent_goal_pos(self.team)
@@ -147,7 +151,6 @@ class Player():
         elif self.current_goal[:4] == "Look" and self.current_head_speed == 0:
             if self.can_see_ball():
                 out = "found ball"
-                self.dir_head = 0
             else:
                 out = "cant find ball"
         elif self.current_goal == "GoToBall":
@@ -208,7 +211,7 @@ class Player():
     def can_see_ball(self):
         ball_dir = normalize(self.ball.pos - self.position)
         ball_dir = np.rad2deg(np.arctan2(ball_dir[0], ball_dir[1]))
-        self.debug_print(ball_dir, self.dir_body + self.dir_head)
+        self.debug_print(ball_dir, self.dir_head)
         if np.isclose(ball_dir, (self.dir_body + self.dir_head), atol=self.fov):
             self.debug_print("can see the ball at {}".format(self.ball.pos))
             return True
