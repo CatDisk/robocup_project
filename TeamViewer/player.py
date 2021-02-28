@@ -43,7 +43,7 @@ class Player():
             "GoToBall": lambda: self.go_to_ball(),
             "GoToAttackPosition": lambda: self.go_to(self.attack_pos, "forward"),
             "GoToDefendPosition": lambda: self.go_to(self.defend_pos, "back"),
-            "Pass":lambda: self.kick(),
+            "Pass":lambda: self.kick(random.randint(-30, 30)),
             "StepBack": lambda: self.go_to((self.position[0] + 5 * np.sin(deg2rad(self.dir_body + 180)),self.position[1] + 5 * np.cos(deg2rad(self.dir_body + 180))), "back"),
             "StayPut": lambda: True,
             "GoRight": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body - 90)),self.position[1] + 30 * np.cos(deg2rad(self.dir_body - 90))), "left"),
@@ -258,12 +258,12 @@ class Player():
             starting_dir = 0
         self.move_head(factor * self.fov + starting_dir, True)
 
-    def kick(self):
+    def kick(self, dir = 0):
         dist = self.ball.pos - self.position
         dist = np.linalg.norm(dist)
         if dist < 40:
             self.debug_print("kick success")
-            self.ball.kick(self.dir_body)
+            self.ball.kick(self.dir_body + dir)
             return True
         else:
             self.debug_print("kick failure")
