@@ -56,10 +56,13 @@ class Game():
         self.controller_inbox = inbox
         print("set controller inbox at {}".format(self.controller_inbox))
 
-    def add_player(self,pos, dir, team, role):
+    def add_player(self,pos, dir, team, role, def_pos = None, atk_pos = None):
         #player id corresponds to index in players list
         id = len(self.players)
-        self.players.append(Player(id, pos, dir, self.player_speed, team, self.player_spites[team], self.display, self.ball))
+        if role == "defender":
+            self.players.append(Player(id, pos, dir, self.player_speed, team, self.player_spites[team], self.display, self.ball, def_pos=def_pos, atk_pos=atk_pos))
+        else:
+            self.players.append(Player(id, pos, dir, self.player_speed, team, self.player_spites[team], self.display, self.ball))
         self.player_metadata.append({
             "reset position": (np.array([pos[0], pos[1]]), dir),
             "role": role,
@@ -263,7 +266,8 @@ if __name__ == "__main__":
         elif sys.argv[1] == 'debug':
             game = Game()
             #Blue Team
-            game.add_player((WIDTH - 100, HEIGHT /2), 0, "blue", "striker")
+            game.add_player((WIDTH/2 + 280, HEIGHT /2 - 200), -90, "blue", "defender", (WIDTH/2 + 280, HEIGHT /2 - 200), (WIDTH/2 - 100, HEIGHT /2 - 200))
+            game.add_player((WIDTH/2 + 280, HEIGHT /2 + 200), -90, "blue", "defender", (WIDTH/2 + 280, HEIGHT /2 + 200), (WIDTH/2 - 100, HEIGHT /2 + 200))
             #Red Team
             controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
             game.set_controller_inbox(controller.inbox)

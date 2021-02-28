@@ -113,7 +113,7 @@ class GoToBall(State):
             return Defender.Pass
         if input == DefenderAction.Collision:
             return Defender.StepBack
-        return Defender.GoToGoal
+        return Defender.GoToBall
 
 
 class Pass(State):

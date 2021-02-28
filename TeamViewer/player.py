@@ -5,7 +5,7 @@ from .utils import *
 from .ball import Ball
 
 class Player():
-    def __init__(self, id, pos, direction, speed, team, sprite, display, ball, def_pos = (0,0), atk_pos = (0, 0)):
+    def __init__(self, id, pos, direction, speed, team, sprite, display, ball, def_pos = None, atk_pos = None):
         self.id = id
         self.sprite = sprite
         self.speed = speed
@@ -165,10 +165,13 @@ class Player():
             else:
                 out = "cant find ball"
         elif self.current_goal == "GoToBall":
+            ball_is_on_my_half = self.ball.pos[0] <= self.display.get_width()/2 if self.team == "red" else self.ball.pos[0] > self.display.get_width()/2
             if not self.can_see_ball():
                 out = "lost ball"
             elif distance_to_ball < 40 and np.isclose(angle_to_ball, self.dir_body, atol=30):
                 out = "close to ball"
+            elif self.attack_pos != None and not ball_is_on_my_half:
+                out = "Ball is on opponents half"
             else:
                 self.go_to(self.calc_near_ball_pos(), "forward")
         elif self.current_goal == "TurnForBall":
@@ -176,27 +179,52 @@ class Player():
         elif self.current_goal == "StepBack":
             out = "done stepping back"
         elif self.current_goal == "StayPut":
-            if distance_to_ball < 40:
-                out = "has ball"
-            elif self.calc_distance_to_goal() < 30:
-                out = "far from goal" 
-            elif distance_to_ball < 2 * (self.display.get_width() * 1/6):
-                if self.team == "blue":
-                    if angle_to_ball < -90:
-                        out = "Ball is approaching on the right side"
+            if self.attack_pos == None: #Keeper
+                if distance_to_ball < 40:
+                    out = "has ball"
+                elif self.calc_distance_to_goal() < 30:
+                    out = "far from goal" 
+                elif distance_to_ball < 2 * (self.display.get_width() * 1/6):
+                    if self.team == "blue":
+                        if angle_to_ball < -90:
+                            out = "Ball is approaching on the right side"
+                        else:
+                            out = "Ball is approaching on the left side"
                     else:
-                        out = "Ball is approaching on the left side"
+                        if angle_to_ball > 90:
+                            out = "Ball is approaching on the left side"
+                        else:
+                            out = "Ball is approaching on the right side"
+                else: 
+                    out = "staying put"
+            else: #Defender
+                ball_is_on_my_half = self.ball.pos[0] <= self.display.get_width()/2 if self.team == "red" else self.ball.pos[0] > self.display.get_width()/2
+                if not self.can_see_ball():
+                    out = "lost ball"
+                elif ball_is_on_my_half:
+                    out = "Ball is on your half"
                 else:
-                    if angle_to_ball > 90:
-                        out = "Ball is approaching on the left side"
-                    else:
-                        out = "Ball is approaching on the right side"
-            else: 
-                out = "staying put"
+                    out = "Ball is on opponents half"
         elif self.current_goal == "GoRight" or self.current_goal == "GoLeft":
             out = "done stepping"
         elif self.current_goal == "Pass":
             out = "ball kicked away"
+        elif self.current_goal == "GoToAttackPosition":
+            ball_is_on_my_half = self.ball.pos[0] <= self.display.get_width()/2 if self.team == "red" else self.ball.pos[0] > self.display.get_width()/2
+            if not self.can_see_ball():
+                out = "lost ball"
+            elif distance_to_ball < 40 and np.isclose(angle_to_ball, self.dir_body, atol=30):
+                out = "has ball"
+            elif ball_is_on_my_half:
+                out = "Ball is on your half"
+        elif self.current_goal == "GoToDefendPosition":
+            ball_is_on_my_half = self.ball.pos[0] <= self.display.get_width()/2 if self.team == "red" else self.ball.pos[0] > self.display.get_width()/2
+            if not self.can_see_ball():
+                out = "lost ball"
+            elif distance_to_ball < 40 and np.isclose(angle_to_ball, self.dir_body, atol=30):
+                out = "has ball"
+            elif not ball_is_on_my_half:
+                out = "Ball is on opponents half"
 
         return out
 
