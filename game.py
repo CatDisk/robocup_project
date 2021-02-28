@@ -233,11 +233,11 @@ class Game():
 if __name__ == "__main__":
     game = Game()
     #Blue Team
-    game.add_player((WIDTH/2 +200,200), -90, "blue", "striker")
+    #game.add_player((WIDTH/2 +200,200), -90, "blue", "striker")
     game.add_player((WIDTH - 40, HEIGHT /2), -90, "blue", "keeper")
     #Red Team
-    game.add_player((WIDTH/2 -400,200), 90, "red", "striker")
-    game.add_player((40 ,HEIGHT /2), 90, "red", "keeper")
+    game.add_player((WIDTH/2 -200,200), 90, "red", "striker")
+    #game.add_player((40 ,HEIGHT /2), 90, "red", "keeper")
     controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
     game.set_controller_inbox(controller.inbox)
     controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))

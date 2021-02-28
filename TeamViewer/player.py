@@ -158,7 +158,7 @@ class Player():
         elif self.current_goal == "Dribble":
             out = "done dribbling"
         elif self.current_goal == "Shoot":
-            out = "too far from ball"
+            out = "lost ball"
         elif self.current_goal[:4] == "Look" and self.current_head_speed == 0:
             if self.can_see_ball():
                 out = "found ball"
@@ -183,9 +183,9 @@ class Player():
             elif distance_to_ball < 2 * (self.display.get_width() * 1/6):
                 if self.team == "blue":
                     if angle_to_ball < -90:
-                        out = "Ball is approaching on the left side"
-                    else:
                         out = "Ball is approaching on the right side"
+                    else:
+                        out = "Ball is approaching on the left side"
                 else:
                     if angle_to_ball > 90:
                         out = "Ball is approaching on the left side"
@@ -203,7 +203,7 @@ class Player():
     def update(self):
         #update movement
         report = "no report"
-        if self.current_goal == "TurnForOpponentGoal" or self.current_goal == "LookForBall" or self.current_goal == "StayPut" or self.current_goal == "Pass":
+        if self.current_goal == "TurnForOpponentGoal" or self.current_goal == "LookForBall" or self.current_goal == "StayPut" or self.current_goal == "Pass" or self.current_goal == "Shoot":
             report = self.finish_current_goal()
         if np.isclose(self.target[0], self.position[0], atol= 0.5) and np.isclose(self.target[1], self.position[1], atol= 0.5):
             self.current_speed[0] = 0
