@@ -43,7 +43,8 @@ class Game():
             49: 1,
             50: 2,
             51: 3,
-            52: 10
+            52: 10,
+            114: 'r',
         }
         #self.ball = Ball((WIDTH / 2, HEIGHT / 2), self.display)
         self.ball = Ball((WIDTH/2, HEIGHT/2 - 50), self.display)
@@ -152,28 +153,6 @@ class Game():
         #blue goal area
         pygame.draw.line(self.display, (0, 0, 255), (WIDTH - offset_from_edge,0), (WIDTH - offset_from_edge,HEIGHT), 2)
 
-    # deprecated
-    #def msg_handler(self, mode='in', body = None):
-    #    if mode == 'in':
-    #        while not self.inbox.empty():
-    #            msg = self.inbox.get()
-    #            if msg.msg_type == "order":
-    #                payload = json.loads(msg.payload)
-    #                if payload["action"] == "move":
-    #                    self.players[payload["target"]].go_to(payload["params"][0], payload["params"][1])
-    #                elif payload["action"] == "look":
-    #                    self.players[payload["target"]].move_head(payload["params"][0])
-    #                elif payload["action"] == "kick":
-    #                    if payload["target"] == "ball":
-    #                        self.ball.kick(payload["params"][0])
-    #                    else:
-    #                        self.players[payload["target"]].kick(self.ball)
-    #                elif payload["action"] == "can see ball":
-    #                    self.players[payload["target"]].can_see_ball(self.ball.pos)
-    #            elif msg.msg_type == "quit":
-    #                self.running = False
-    #            elif msg.msg_type == "reset":
-    #                self.reset_all()
     def msg_handler(self, mode='in', body = None):
         if mode == 'in':
             while not self.inbox.empty():
@@ -212,9 +191,16 @@ class Game():
                     self.running = False
                 elif event.type == pygame.KEYUP:
                     try:
-                        self.game_speed = self.key_map[event.key]
+                        if event.key != 114:
+                            self.game_speed = self.key_map[event.key]
+                        elif event.key == 114:
+                            self.reset_all()
+                            controller.inbox.put(Message("reset", None))
+                            self.message_event.set()
+                        else:
+                            raise NotImplementedError
                     except:
-                        print("undefined key")
+                        print("unmapped key: {}".format(event.key))
             self.msg_handler()
             self.check_collisions()
             self.field.update()
