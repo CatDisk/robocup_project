@@ -15,6 +15,7 @@ DefenderAction.HasBall = Action("has ball")
 DefenderAction.BallApproachesGoal = Action("Ball approaches goal")
 DefenderAction.BallIsOnYourHalf = Action("Ball is on your half")
 DefenderAction.BallIsOnOpponentsHalf = Action("Ball is on opponents half")
+DefenderAction.Collision = Action("collision")
 
 class StayPut(State):
 
@@ -46,6 +47,8 @@ class GoToAttackPosition(State):
             return Defender.Pass
         if input == DefenderAction.BallIsOnYourHalf:
             return Defender.StayPut
+        if input == DefenderAction.Collision:
+            return Defender.StepBack
         return Defender.GoToAttackPosition
 
 
@@ -63,7 +66,20 @@ class GoToDefendPosition(State):
             return Defender.StayPut
         if input == DefenderAction.BallApproachesGoal:
             return Defender.GoToBall
+        if input == DefenderAction.Collision:
+            return Defender.StepBack
         return Defender.GoToDefendPosition
+
+
+class StepBack(State):
+
+    def run(self):
+        #take a few steps back
+        State.name = "StepBack"
+        print("ouch!")
+
+    def next(self, input):
+        return Defender.SearchBall
 
 
 class SearchBall(State):
@@ -95,6 +111,8 @@ class GoToBall(State):
             return Defender.StayPut
         if input == DefenderAction.HasBall:
             return Defender.Pass
+        if input == DefenderAction.Collision:
+            return Defender.StepBack
         return Defender.GoToGoal
 
 
@@ -123,5 +141,6 @@ Defender.GoToAttackPosition = GoToAttackPosition()
 Defender.GoToDefendPosition = GoToDefendPosition()
 Defender.Pass = Pass()
 Defender.GoToBall = GoToBall()
+Defender.StepBack = StepBack()
 Defender.SearchBall = SearchBall()
 
