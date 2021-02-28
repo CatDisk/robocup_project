@@ -16,6 +16,7 @@ KeeperAction.FarFromGoal = Action("far from goal")
 KeeperAction.IsAtGoal = Action("is at goal")
 KeeperAction.BallApproachesLeft = Action("Ball is approaching on the left side")
 KeeperAction.BallApproachesRight = Action("Ball is approaching on the right side")
+KeeperAction.Collision = Action("collision")
 
 class StayPut(State):
 
@@ -46,6 +47,8 @@ class GoLeft(State):
         print("going left")
 
     def next(self, input):
+        if input == KeeperAction.Collision:
+            Keeper.GoRight
         return Keeper.StayPut
 
 
@@ -57,7 +60,20 @@ class GoRight(State):
         print("going right")
 
     def next(self, input):
+        if input == KeeperAction.Collision:
+            return Keeper.GoLeft
         return Keeper.StayPut
+
+
+class StepBack(State):
+
+    def run(self):
+        #take a few steps back
+        State.name = "StepBack"
+        print("ouch!")
+
+    def next(self, input):
+        return Keeper.SearchBall
 
 
 class SearchBall(State):
@@ -84,6 +100,8 @@ class GoToGoal(State):
     def next(self, input):
         if input == KeeperAction.IsAtGoal:
             return Keeper.StayPut
+        if input == KeeperAction.Collision:
+            return Keeper.StepBack
         return Keeper.GoToGoal
 
 
@@ -110,6 +128,7 @@ Keeper.StayPut = StayPut()
 Keeper.GoLeft = GoLeft()
 Keeper.GoRight = GoRight()
 Keeper.Pass = Pass()
+Keeper.StepBack = StepBack
 Keeper.GoToGoal = GoToGoal()
 Keeper.SearchBall = SearchBall()
 
