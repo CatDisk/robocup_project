@@ -223,7 +223,7 @@ class Player():
                 self.searching = False
         sprite_offset = np.array([16, 22.5])
         self.draw_helper_lines()
-        #self.display.blit(pygame.transform.rotate(self.sprite, (self.dir_body - 90 + self.dir_head)), vec2tuple(self.position - sprite_offset))
+        self.display.blit(pygame.transform.rotate(self.sprite, (self.dir_body - 90 + self.dir_head)), vec2tuple(self.position - sprite_offset))
         return report
 
     def move_head(self, target_dir, is_searching):

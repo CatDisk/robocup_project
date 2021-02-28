@@ -232,7 +232,7 @@ class Game():
 
 if __name__ == "__main__":
     game = Game()
-    #game.add_player((WIDTH/2 +200,200), -90, "blue", "striker")
+    game.add_player((WIDTH/2 +200,200), -90, "blue", "striker")
     #game.add_player((WIDTH/2 +200,500), -90, "blue", "striker")
     #game.add_player((WIDTH/2 -200,200), 90, "red", "striker")
     game.add_player((40 ,HEIGHT /2), 90, "red", "keeper")
