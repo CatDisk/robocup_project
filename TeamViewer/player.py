@@ -112,7 +112,6 @@ class Player():
 
         dist = goal_pos - self.position
         dist = np.linalg.norm(dist)
-        self.debug_print("distance to goal {}".format(dist))
         return dist
 
     def calc_opponent_goal_pos(self, team):
@@ -196,13 +195,15 @@ class Player():
                 out = "staying put"
         elif self.current_goal == "GoRight" or self.current_goal == "GoLeft":
             out = "done stepping"
+        elif self.current_goal == "Pass":
+            out = "ball kicked away"
 
         return out
 
     def update(self):
         #update movement
         report = "no report"
-        if self.current_goal == "TurnForOpponentGoal" or self.current_goal == "LookForBall" or self.current_goal == "StayPut":
+        if self.current_goal == "TurnForOpponentGoal" or self.current_goal == "LookForBall" or self.current_goal == "StayPut" or self.current_goal == "Pass":
             report = self.finish_current_goal()
         if np.isclose(self.target[0], self.position[0], atol= 0.5) and np.isclose(self.target[1], self.position[1], atol= 0.5):
             self.current_speed[0] = 0
