@@ -16,7 +16,7 @@ from game_controller import GameController
 
 HEIGHT = 64 * 10 #has to be even number of tiles
 WIDTH = 64 * 18
-FPS = 30
+FPS = 20
 
 class Game():
     def __init__(self) -> None:
@@ -44,7 +44,8 @@ class Game():
             51: 3,
             52: 10
         }
-        self.ball = Ball((WIDTH / 2, HEIGHT / 2), self.display)
+        #self.ball = Ball((WIDTH / 2, HEIGHT / 2), self.display)
+        self.ball = Ball((200, 200), self.display)
         self.clock = Clock(FPS)
         self.inbox = queue.Queue()
         self.controller_inbox = queue.Queue()
@@ -98,8 +99,9 @@ class Game():
                 dist = np.linalg.norm(pos1 - pos2)
                 if dist < 45:
                     print("collision between {} and {} at  {}".format(i, j, pos1))
-                    report1 = self.players[i].report_collision(pos2)
-                    report2 = self.players[j].report_collision(pos1)
+                    if self.players[i].report_collision(pos2):
+                        self.send_data(i, "collision")
+                        self.message_event.set()
 
             #player-ball collisions
             dist = np.linalg.norm(pos1 - pos_ball)
@@ -230,8 +232,10 @@ class Game():
 
 if __name__ == "__main__":
     game = Game()
-    #game.add_player((WIDTH/2 +200,200), -45, "blue", "striker")
-    game.add_player((WIDTH/2 -200,200), 66, "red", "striker")
+    #game.add_player((WIDTH/2 +200,200), -90, "blue", "striker")
+    #game.add_player((WIDTH/2 +200,500), -90, "blue", "striker")
+    #game.add_player((WIDTH/2 -200,200), 90, "red", "striker")
+    game.add_player((WIDTH/2 -200,500), 0, "red", "striker")
     controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
     game.set_controller_inbox(controller.inbox)
     controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))

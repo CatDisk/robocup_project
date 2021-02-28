@@ -15,6 +15,7 @@ StrikerAction.FacingOpponentsGoal = Action("facing opponents goal")
 StrikerAction.LostBall = Action("lost ball")
 StrikerAction.FoundBall = Action("found ball")
 StrikerAction.CloseToBall = Action("close to ball")
+StrikerAction.Collision = Action("collision")
 
 
 class TurnForOpponentGoal(State):
@@ -31,7 +32,19 @@ class TurnForOpponentGoal(State):
             return Striker.GoToBall
         if input == StrikerAction.FacingOpponentsGoal:
            return Striker.Dribble
+        if input == StrikerAction.Collision:
+            return Striker.StepBack
         return Striker.TurnForOpponentGoal
+
+class StepBack(State):
+
+    def run(self):
+        #take a few steps back
+        State.name = "StepBack"
+        print("ouch!")
+
+    def next(self, input):
+        return Striker.SearchBall
 
 
 class Shoot(State):
@@ -46,6 +59,8 @@ class Shoot(State):
             return Striker.SearchBall
         if input == StrikerAction.TooFarFromBall:
             return Striker.GoToBall
+        if input == StrikerAction.Collision:
+            return Striker.StepBack
         return Striker.TurnForOpponentGoal
 
 
@@ -57,6 +72,8 @@ class Dribble(State):
         print("dribbling")
 
     def next(self, input):
+        if input == StrikerAction.Collision:
+            return Striker.StepBack
         return Striker.GoToBall
 
 
@@ -72,6 +89,8 @@ class GoToBall(State):
             return Striker.SearchBall
         if input == StrikerAction.CloseToBall:
             return Striker.TurnForOpponentGoal
+        if input == StrikerAction.Collision:
+            return Striker.StepBack
         return Striker.GoToBall
 
 
@@ -88,6 +107,8 @@ class SearchBall(State):
             return Striker.GoToBall
         if Striker.SearchForBall is not None:
             Striker.SearchForBall.run(input)
+        if input == StrikerAction.Collision:
+            return Striker.StepBack
         return Striker.SearchBall
 
 
@@ -104,6 +125,7 @@ Striker.Shoot = Shoot()
 Striker.Dribble = Dribble()
 Striker.SearchBall = SearchBall()
 Striker.GoToBall = GoToBall()
+Striker.StepBack = StepBack()
 
 if __name__ == '__main__':
     s = Striker()

@@ -44,9 +44,10 @@ class Player():
             "GoToAttackPosition": lambda: self.go_to(self.attack_pos, "forward"),
             "GoToDefendPosition": lambda: self.go_to(self.defend_pos, "back"),
             "Pass":1,
+            "StepBack": lambda: self.go_to((self.position[0] + 5 * np.sin(deg2rad(self.dir_body + 180)),self.position[1] + 5 * np.cos(deg2rad(self.dir_body + 180))), "back"),
             "StayPut": lambda: True,
-            "GoLeft": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body - 90)),self.position[0] + 30 * np.cos(deg2rad(self.dir_body - 90))), "left"),
-            "GoRight": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body + 90)),self.position[0] + 30 * np.cos(deg2rad(self.dir_body + 90))), "right"),
+            "GoLeft": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body - 90)),self.position[1] + 30 * np.cos(deg2rad(self.dir_body - 90))), "left"),
+            "GoRight": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body + 90)),self.position[1] + 30 * np.cos(deg2rad(self.dir_body + 90))), "right"),
         }
         return actions
     
@@ -142,14 +143,11 @@ class Player():
         elif self.current_goal == "Dribble":
             out = "done dribbling"
         elif self.current_goal == "Shoot":
-            if not self.can_see_ball():
-                out = "lost ball"
-            elif dist > 40:
-                out = "too far from ball"
+            out = "too far from ball"
         elif self.current_goal[:4] == "Look" and self.current_head_speed == 0:
             if self.can_see_ball():
                 out = "found ball"
-                self.move_head(0, False)
+                self.dir_head = 0
             else:
                 out = "cant find ball"
         elif self.current_goal == "GoToBall":
@@ -161,6 +159,8 @@ class Player():
                 self.go_to(self.calc_near_ball_pos(), "forward")
         elif self.current_goal == "TurnForBall":
             out = "done turning"
+        elif self.current_goal == "StepBack":
+            out == "done stepping back"
 
         return out
 
@@ -180,11 +180,15 @@ class Player():
             self.dir_head += self.current_head_speed
         else:
             self.current_head_speed = 0
-        if self.searching and self.current_head_speed == 0:
-            report = self.finish_current_goal()
+        if self.searching:
+            if self.current_head_speed == 0:
+                report = self.finish_current_goal()
+            elif self.can_see_ball():
+                report = "found ball"
+                self.searching = False
         sprite_offset = np.array([16, 22.5])
         self.draw_helper_lines()
-        self.display.blit(pygame.transform.rotate(self.sprite, (self.dir_body - 90 + self.dir_head)), vec2tuple(self.position - sprite_offset))
+        #self.display.blit(pygame.transform.rotate(self.sprite, (self.dir_body - 90 + self.dir_head)), vec2tuple(self.position - sprite_offset))
         return report
 
     def move_head(self, target_dir, is_searching):
@@ -204,17 +208,18 @@ class Player():
     def can_see_ball(self):
         ball_dir = normalize(self.ball.pos - self.position)
         ball_dir = np.rad2deg(np.arctan2(ball_dir[0], ball_dir[1]))
+        self.debug_print(ball_dir, self.dir_body + self.dir_head)
         if np.isclose(ball_dir, (self.dir_body + self.dir_head), atol=self.fov):
             self.debug_print("can see the ball at {}".format(self.ball.pos))
             return True
         else:
-            self.debug_print("can't see the ball")
+            #self.debug_print("can't see the ball")
             return False
 
     def look_direction(self, direction):
         factor = -1 if direction == "right" else 1
         starting_dir = self.dir_head
-        if not np.isclose(factor * self.fov, self.dir_head):
+        if not np.isclose(factor * self.fov, self.dir_head, atol = 10):
             starting_dir = 0
         self.move_head(factor * self.fov + starting_dir, True)
 
@@ -236,20 +241,12 @@ class Player():
         impact_dir = normalize(pos - self.position)
         impact_dir = rad2deg(np.arctan2(impact_dir[0], impact_dir[1]))
         if np.isclose(impact_dir, rad2deg(np.arctan2(self.current_speed[0], self.current_speed[1])), atol = 30):
-            if not np.allclose(self.current_speed, np.zeros(2), atol= 0.001):
-                self.debug_print("Responsible for collision")
-                #'bounce' player out of colision retection range
-                self.position -= 2 * self.current_speed
-            if impact_dir < rad2deg(np.arctan2(self.current_speed[0], self.current_speed[1])):
-                self.debug_print("Impact on the right")
-                self.current_speed = self.current_speed * 0
-                return "right"
-            else:
-                self.debug_print("Impact on the left")
-                self.current_speed = self.current_speed * 0
-                return "left"
+            self.debug_print("bonk!")
+            #'bounce' player out of colision retection range
+            self.position -= 5 * self.current_speed
+            return True
         else:
-            return "none"
+            return False
     
     def go_to(self, pos, dir):
         width, height = self.display.get_size()
@@ -280,5 +277,5 @@ class Player():
             else:
                 self.debug_print("\"{}\" is not a valid direction".format(dir))
 
-    def debug_print(self, output):
+    def debug_print(self, *output):
         print("Player {}: {}".format(self.id, output))

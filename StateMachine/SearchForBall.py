@@ -66,7 +66,7 @@ class LookRight(State):
             return SearchForBall.FoundBall
         if input == LookingAction.CantFindBall:
             return SearchForBall.LookFarRight
-        return SearchForBall.Right
+        return SearchForBall.LookRight
 
 
 class LookFarRight(State):
