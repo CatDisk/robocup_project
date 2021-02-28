@@ -43,11 +43,11 @@ class Player():
             "GoToBall": lambda: self.go_to_ball(),
             "GoToAttackPosition": lambda: self.go_to(self.attack_pos, "forward"),
             "GoToDefendPosition": lambda: self.go_to(self.defend_pos, "back"),
-            "Pass":1,
+            "Pass":lambda: self.kick(),
             "StepBack": lambda: self.go_to((self.position[0] + 5 * np.sin(deg2rad(self.dir_body + 180)),self.position[1] + 5 * np.cos(deg2rad(self.dir_body + 180))), "back"),
             "StayPut": lambda: True,
-            "GoLeft": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body - 90)),self.position[1] + 30 * np.cos(deg2rad(self.dir_body - 90))), "left"),
-            "GoRight": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body + 90)),self.position[1] + 30 * np.cos(deg2rad(self.dir_body + 90))), "right"),
+            "GoRight": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body - 90)),self.position[1] + 30 * np.cos(deg2rad(self.dir_body - 90))), "left"),
+            "GoLeft": lambda: self.go_to((self.position[0] + 30 * np.sin(deg2rad(self.dir_body + 90)),self.position[1] + 30 * np.cos(deg2rad(self.dir_body + 90))), "right"),
         }
         return actions
     
@@ -102,6 +102,18 @@ class Player():
         else:
             threshold = offset_from_edge
         return threshold
+    
+    def calc_distance_to_goal(self):
+        goal_pos: np.array
+        if self.team == "blue":
+            goal_pos =  np.array([self.display.get_width(), self.display.get_height()/2])
+        else:
+            goal_pos =  np.array([0, self.display.get_height()/2])
+
+        dist = goal_pos - self.position
+        dist = np.linalg.norm(dist)
+        self.debug_print("distance to goal {}".format(dist))
+        return dist
 
     def calc_opponent_goal_pos(self, team):
         random_offset = random.randint(-64 * 2, 64 * 2)
@@ -130,17 +142,17 @@ class Player():
 
     def finish_current_goal(self):
         out = "no report"
-        dist = self.ball.pos - self.position
-        angle = rad2deg(np.arctan2(dist[0], dist[1]))
-        dist = np.linalg.norm(dist)
+        distance_to_ball = self.ball.pos - self.position
+        angle_to_ball = rad2deg(np.arctan2(distance_to_ball[0], distance_to_ball[1]))
+        distance_to_ball = np.linalg.norm(distance_to_ball)
         if self.current_goal == "TurnForOpponentGoal":
             if (self.team == "red" and self.position[0] >= self.opponent_goal_threshold) or (self.team == "blue" and self.position[0] <= self.opponent_goal_threshold):
-                dist = self.ball.pos - self.position
-                angle = rad2deg(np.arctan2(dist[0], dist[1]))
-                dist = np.linalg.norm(dist)
-                if dist < 40:
+                distance_to_ball = self.ball.pos - self.position
+                angle_to_ball = rad2deg(np.arctan2(distance_to_ball[0], distance_to_ball[1]))
+                distance_to_ball = np.linalg.norm(distance_to_ball)
+                if distance_to_ball < 40:
                     out = "ready to shoot"
-                elif dist >= 40:
+                elif distance_to_ball >= 40:
                     out = "too far from ball"
             else:
                 out = "facing opponents goal"
@@ -156,21 +168,41 @@ class Player():
         elif self.current_goal == "GoToBall":
             if not self.can_see_ball():
                 out = "lost ball"
-            elif dist < 40 and np.isclose(angle, self.dir_body, atol=30):
+            elif distance_to_ball < 40 and np.isclose(angle_to_ball, self.dir_body, atol=30):
                 out = "close to ball"
             else:
                 self.go_to(self.calc_near_ball_pos(), "forward")
         elif self.current_goal == "TurnForBall":
             out = "done turning"
         elif self.current_goal == "StepBack":
-            out == "done stepping back"
+            out = "done stepping back"
+        elif self.current_goal == "StayPut":
+            if distance_to_ball < 40:
+                out = "has ball"
+            elif self.calc_distance_to_goal() < 30:
+                out = "far from goal" 
+            elif distance_to_ball < 2 * (self.display.get_width() * 1/6):
+                if self.team == "blue":
+                    if angle_to_ball < -90:
+                        out = "Ball is approaching on the left side"
+                    else:
+                        out = "Ball is approaching on the right side"
+                else:
+                    if angle_to_ball > 90:
+                        out = "Ball is approaching on the left side"
+                    else:
+                        out = "Ball is approaching on the right side"
+            else: 
+                out = "staying put"
+        elif self.current_goal == "GoRight" or self.current_goal == "GoLeft":
+            out = "done stepping"
 
         return out
 
     def update(self):
         #update movement
         report = "no report"
-        if self.current_goal == "TurnForOpponentGoal" or self.current_goal == "LookForBall":
+        if self.current_goal == "TurnForOpponentGoal" or self.current_goal == "LookForBall" or self.current_goal == "StayPut":
             report = self.finish_current_goal()
         if np.isclose(self.target[0], self.position[0], atol= 0.5) and np.isclose(self.target[1], self.position[1], atol= 0.5):
             self.current_speed[0] = 0

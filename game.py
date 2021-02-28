@@ -45,7 +45,7 @@ class Game():
             52: 10
         }
         #self.ball = Ball((WIDTH / 2, HEIGHT / 2), self.display)
-        self.ball = Ball((800, 500), self.display)
+        self.ball = Ball((WIDTH/2, HEIGHT/2 - 50), self.display)
         self.clock = Clock(FPS)
         self.inbox = queue.Queue()
         self.controller_inbox = queue.Queue()
@@ -235,7 +235,7 @@ if __name__ == "__main__":
     #game.add_player((WIDTH/2 +200,200), -90, "blue", "striker")
     #game.add_player((WIDTH/2 +200,500), -90, "blue", "striker")
     #game.add_player((WIDTH/2 -200,200), 90, "red", "striker")
-    game.add_player((WIDTH/2 -200,50), 180, "red", "striker")
+    game.add_player((40 ,HEIGHT /2), 90, "red", "keeper")
     controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
     game.set_controller_inbox(controller.inbox)
     controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))

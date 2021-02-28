@@ -190,7 +190,7 @@ class GameController():
             self.send_order(str(machine), index)
         while self.running:
             event.wait()
-            if not self.inbox.empty():
+            while not self.inbox.empty():
                 message = self.inbox.get()
                 if message.msg_type == "data":
                     payload = json.loads(message.payload)

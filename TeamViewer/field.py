@@ -56,7 +56,7 @@ class Field():
 
     def goals_pos(self):
         offset_from_center = (self.goal_size_tiles / 2) * 64
-        offset_from_sides = 64
+        offset_from_sides = 20
         return (offset_from_sides, offset_from_center)
 
     def __add_goals__(self):

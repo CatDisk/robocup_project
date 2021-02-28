@@ -5,7 +5,7 @@ from .utils import *
 class Ball():
     def __init__(self, pos, display):
         self.pos = np.array([pos[0], pos[1]])
-        self.current_speed = np.array([0, 0])
+        self.current_speed = np.array([-3, 0])
         self.display = display
         self.resistance = 0.01  #rolling resistance
         self.speed = 3          #'force' of the kick
