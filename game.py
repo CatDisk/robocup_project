@@ -225,7 +225,8 @@ def print_help():
     print("usage: game.py <showcase number>")
     print("-----------------------------------------------")
     print("1: Goalkeeper defends a striker's goal attempt")
-    print("2: Ball is out of line of sight of striker\n")
+    print("2: Ball is out of line of sight of striker")
+    print("3: Striker & defender on team red and keeper & defender on team blue\n")
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:
@@ -258,7 +259,7 @@ if __name__ == "__main__":
             game.add_player((WIDTH - 40, HEIGHT / 2), -90, "blue", "keeper")
 
             # Red Team
-            game.add_player((WIDTH / 2 + 280, HEIGHT / 2 + 200), 90, "red", "defender",
+            game.add_player((WIDTH / 2 - 280, HEIGHT / 2 + 200), 90, "red", "defender",
                             (WIDTH / 2 - 280, HEIGHT / 2 + 200), (WIDTH / 2 + 100, HEIGHT / 2 + 200))
             game.add_player((WIDTH / 2 - 200, random.randint(50, HEIGHT - 50)), 90, "red", "striker")
             controller = GameController(game.inbox,
