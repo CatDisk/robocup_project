@@ -58,13 +58,13 @@ class Player():
         pygame.draw.line(self.display, (255, 0, 0), vec2tuple(self.position), end_pos_left)
         pygame.draw.line(self.display, (0, 0, 255), vec2tuple(self.position), end_pos_right)
 
+        #line to opponents goal
+        pygame.draw.line(self.display, (0, 255, 0), vec2tuple(self.position), vec2tuple(self.opponent_goal))
+        
         #body dir
         end_pos = (self.position[0] + 50 * np.sin(deg2rad(self.dir_body)), self.position[1] + 50 * np.cos(deg2rad(self.dir_body)))
-        pygame.draw.line(self.display, (192, 0, 135), vec2tuple(self.position), end_pos)
+        pygame.draw.line(self.display, (192, 0, 135), vec2tuple(self.position), end_pos, 2)
 
-        #line to opponents goal
-        pygame.draw.line(self.display, (102, 0, 102), vec2tuple(self.position), vec2tuple(self.opponent_goal))
-        
     def set_speed(self, speed):
         self.speed = speed
 
@@ -73,7 +73,6 @@ class Player():
         self.current_head_speed = 0
         self.dir_body += amt
         self.can_see_ball()
-        self.finish_current_goal()
 
     def go_to_ball(self):
         self.move_head(0,False)
@@ -159,6 +158,11 @@ class Player():
             out = "done dribbling"
         elif self.current_goal == "Shoot":
             out = "lost ball"
+        elif self.current_goal == "LookForBall":
+            if self.can_see_ball():
+                out = "found ball"
+            else:
+                out = "cant find ball"
         elif self.current_goal[:4] == "Look" and self.current_head_speed == 0:
             if self.can_see_ball():
                 out = "found ball"
@@ -219,24 +223,27 @@ class Player():
                 out = "Ball is on your half"
         elif self.current_goal == "GoToDefendPosition":
             ball_is_on_my_half = self.ball.pos[0] <= self.display.get_width()/2 if self.team == "red" else self.ball.pos[0] > self.display.get_width()/2
+            approaching_goal = self.ball.pos[0] <= (self.display.get_width() * 1/5) if self.team == "red" else self.ball.pos[0] >= self.display.get_width() - (self.display.get_width() * 1/5)
             if not self.can_see_ball():
                 out = "lost ball"
             elif distance_to_ball < 40 and np.isclose(angle_to_ball, self.dir_body, atol=30):
                 out = "has ball"
             elif not ball_is_on_my_half:
                 out = "Ball is on opponents half"
+            elif approaching_goal:
+                out = "Ball approaches goal"
 
         return out
 
     def update(self):
         #update movement
         report = "no report"
-        if self.current_goal == "TurnForOpponentGoal" or self.current_goal == "LookForBall" or self.current_goal == "StayPut" or self.current_goal == "Pass" or self.current_goal == "Shoot":
+        if self.current_goal == "TurnForOpponentGoal" or self.current_goal == "LookForBall" or self.current_goal == "StayPut" or self.current_goal == "Pass" or self.current_goal == "Shoot" or self.current_goal == "TurnForBall":
             report = self.finish_current_goal()
         if np.isclose(self.target[0], self.position[0], atol= 0.5) and np.isclose(self.target[1], self.position[1], atol= 0.5):
             self.current_speed[0] = 0
             self.current_speed[1] = 0
-            report = self.finish_current_goal()
+            if report == "no report" :report = self.finish_current_goal()
         else:
             self.position = self.position + self.current_speed
         #update looking direction
@@ -247,6 +254,7 @@ class Player():
         if self.searching:
             if self.current_head_speed == 0:
                 report = self.finish_current_goal()
+                
             elif self.can_see_ball():
                 report = "found ball"
                 self.searching = False
@@ -272,9 +280,9 @@ class Player():
     def can_see_ball(self):
         ball_dir = normalize(self.ball.pos - self.position)
         ball_dir = np.rad2deg(np.arctan2(ball_dir[0], ball_dir[1]))
-        self.debug_print(ball_dir, self.dir_head)
+        #self.debug_print(ball_dir, self.dir_head)
         if np.isclose(ball_dir, (self.dir_body + self.dir_head), atol=self.fov):
-            self.debug_print("can see the ball at {}".format(self.ball.pos))
+            #self.debug_print("can see the ball at {}".format(self.ball.pos))
             return True
         else:
             #self.debug_print("can't see the ball")

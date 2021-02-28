@@ -5,6 +5,7 @@ import json
 import threading
 import queue
 import numpy as np
+import random
 import sys
 
 from TeamViewer.utils import *
@@ -233,7 +234,7 @@ if __name__ == "__main__":
             #Blue Team
             game.add_player((WIDTH - 40, HEIGHT /2), -90, "blue", "keeper")
             #Red Team
-            game.add_player((WIDTH/2 -200,200), 90, "red", "striker")
+            game.add_player((WIDTH/2 -200,random.randint(50, HEIGHT - 50)), 90, "red", "striker")
             controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
             game.set_controller_inbox(controller.inbox)
             controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))
@@ -255,6 +256,7 @@ if __name__ == "__main__":
             game.add_player((WIDTH/2 + 280, HEIGHT /2 - 200), -90, "blue", "defender", (WIDTH/2 + 280, HEIGHT /2 - 200), (WIDTH/2 - 100, HEIGHT /2 - 200))
             game.add_player((WIDTH/2 + 280, HEIGHT /2 + 200), -90, "blue", "defender", (WIDTH/2 + 280, HEIGHT /2 + 200), (WIDTH/2 - 100, HEIGHT /2 + 200))
             #Red Team
+            game.add_player((WIDTH/2 -200,random.randint(50, HEIGHT - 50)), 90, "red", "striker")
             controller = GameController(game.inbox, list(map(lambda elem : [elem["role"], elem["team"]], game.player_metadata)))
             game.set_controller_inbox(controller.inbox)
             controller_thread = threading.Thread(target = controller.run, args=(game.message_event, ))
